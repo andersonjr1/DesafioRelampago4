@@ -1,8 +1,7 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import EnemyProfile from "./EnemyProfile";
-import UnoCardBack from "./UnoCardBack";
 
 // --- Interfaces ---
 interface EnemyHandProps {
@@ -18,7 +17,8 @@ const HandContainer = styled(Box)<{ position: number }>(
   ({ theme, position }) => {
     const baseStyles = {
       display: "flex",
-      gap: theme.spacing(1),
+      justifyContent: "center",
+      alignItems: "center",
       padding: theme.spacing(2),
     };
 
@@ -30,8 +30,6 @@ const HandContainer = styled(Box)<{ position: number }>(
           top: 0,
           left: "50%",
           transform: "translateX(-50%)",
-          flexDirection: "row" as const,
-          alignItems: "center",
           zIndex: 100,
         };
       case 3: // Esquerda vertical
@@ -41,8 +39,6 @@ const HandContainer = styled(Box)<{ position: number }>(
           left: 0,
           top: "50%",
           transform: "translateY(-50%)",
-          flexDirection: "column" as const,
-          alignItems: "center",
           zIndex: 100,
         };
       case 4: // Direita vertical
@@ -52,15 +48,11 @@ const HandContainer = styled(Box)<{ position: number }>(
           right: 0,
           top: "50%",
           transform: "translateY(-50%)",
-          flexDirection: "column" as const,
-          alignItems: "center",
           zIndex: 100,
         };
       default:
         return {
           ...baseStyles,
-          flexDirection: "column" as const,
-          alignItems: "center",
         };
     }
   }
@@ -70,8 +62,28 @@ const CardsContainer = styled(Box)<{ position: number }>(
   ({ theme, position }) => {
     const baseStyles = {
       display: "flex",
+      overflowX: "auto" as const,
+      overflowY: "auto" as const,
       gap: theme.spacing(0.5),
       padding: theme.spacing(1),
+      maxWidth: "90vw",
+      maxHeight: "80vh",
+      boxSizing: "border-box" as const,
+
+      "&::-webkit-scrollbar": {
+        width: "8px",
+        height: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background: "transparent",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "rgba(0, 0, 0, 0.2)",
+        borderRadius: "10px",
+      },
+      "&::-webkit-scrollbar-thumb:hover": {
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+      },
     };
 
     switch (position) {
@@ -79,32 +91,23 @@ const CardsContainer = styled(Box)<{ position: number }>(
         return {
           ...baseStyles,
           flexDirection: "row" as const,
-          flexWrap: "nowrap" as const,
-          overflowX: "auto" as const,
-          maxWidth: "80vw",
+          justifyContent: "center",
+          alignItems: "center",
         };
       case 3: // Esquerda - vertical
-        return {
-          ...baseStyles,
-          flexDirection: "column" as const,
-          flexWrap: "nowrap" as const,
-          overflowY: "auto" as const,
-          maxHeight: "80vh",
-        };
       case 4: // Direita - vertical
         return {
           ...baseStyles,
           flexDirection: "column" as const,
-          flexWrap: "nowrap" as const,
-          overflowY: "auto" as const,
-          maxHeight: "80vh",
+          justifyContent: "center",
+          alignItems: "center",
         };
       default:
         return {
           ...baseStyles,
           flexDirection: "row" as const,
-          flexWrap: "wrap" as const,
           justifyContent: "center",
+          alignItems: "center",
         };
     }
   }
@@ -112,49 +115,56 @@ const CardsContainer = styled(Box)<{ position: number }>(
 
 const DisconnectedOverlay = styled(Box)(({ theme }) => ({
   position: "relative",
-  opacity: 0.5,
-  filter: "grayscale(100%)",
   "&::after": {
-    content: '"DESCONECTADO"',
+    content: '"Desconectado"',
     position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    backgroundColor: "rgba(255, 0, 0, 0.8)",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     color: "white",
-    padding: theme.spacing(0.5, 1),
-    borderRadius: theme.spacing(0.5),
-    fontSize: "0.8rem",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: theme.typography.h6.fontSize,
     fontWeight: "bold",
-    zIndex: 10,
+    zIndex: 1000,
   },
 }));
 
 const CardWrapper = styled(Box)<{ position: number }>(({ position }) => {
   const baseStyles = {
-    transformOrigin: "center",
+    transition: "transform 0.2s ease-in-out",
+    "&:hover": {
+      zIndex: 1,
+    },
   };
 
   switch (position) {
-    case 2: // Topo
+    case 2: // Topo - cartas horizontais menores
       return {
         ...baseStyles,
-        transform: "scale(0.7)",
+        transform: "scale(0.6)",
+        transformOrigin: "center",
       };
-    case 3: // Esquerda - cartas de lado
+    case 3: // Esquerda - cartas verticais rotacionadas
       return {
         ...baseStyles,
-        transform: "scale(0.7) rotate(90deg)",
+        transform: "rotate(90deg) scale(0.5)",
+        transformOrigin: "center",
       };
-    case 4: // Direita - cartas de lado
+    case 4: // Direita - cartas verticais rotacionadas para o outro lado
       return {
         ...baseStyles,
-        transform: "scale(0.7) rotate(-90deg)",
+        transform: "rotate(-90deg) scale(0.5)",
+        transformOrigin: "center",
       };
     default:
       return {
         ...baseStyles,
-        transform: "scale(0.7)",
+        transform: "scale(0.8)",
+        transformOrigin: "center",
       };
   }
 });
@@ -167,68 +177,11 @@ const EnemyHand: React.FC<EnemyHandProps> = ({
   disconnected,
   position,
 }) => {
-  const renderCards = () => {
-    const cards = [];
-    for (let i = 0; i < cardCount; i++) {
-      cards.push(
-        <CardWrapper key={i} position={position}>
-          <UnoCardBack />
-        </CardWrapper>
-      );
-    }
-    return cards;
-  };
-
-  const renderContent = () => {
-    const profile = (
+  const content = (
+    <HandContainer position={position}>
       <EnemyProfile name={name} cardCount={cardCount} yelledUno={yelledUno} />
-    );
-    const cards =
-      cardCount > 0 ? (
-        <CardsContainer position={position}>{renderCards()}</CardsContainer>
-      ) : (
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          style={{ fontStyle: "italic" }}
-        >
-          Sem cartas
-        </Typography>
-      );
-
-    switch (position) {
-      case 2: // Topo - perfil à esquerda das cartas
-        return (
-          <HandContainer position={position}>
-            {profile}
-            {cards}
-          </HandContainer>
-        );
-      case 3: // Esquerda - perfil em cima das cartas
-        return (
-          <HandContainer position={position}>
-            {profile}
-            {cards}
-          </HandContainer>
-        );
-      case 4: // Direita - perfil em baixo das cartas
-        return (
-          <HandContainer position={position}>
-            {cards}
-            {profile}
-          </HandContainer>
-        );
-      default:
-        return (
-          <HandContainer position={position}>
-            {profile}
-            {cards}
-          </HandContainer>
-        );
-    }
-  };
-
-  const content = renderContent();
+    </HandContainer>
+  );
 
   if (disconnected) {
     return <DisconnectedOverlay>{content}</DisconnectedOverlay>;
