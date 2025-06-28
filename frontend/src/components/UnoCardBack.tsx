@@ -7,8 +7,8 @@ import { styled } from "@mui/material/styles";
 // Container principal da carta.
 // Exatamente o mesmo estilo da frente para manter a consistência.
 const CardContainer = styled(Box)(({ theme }) => ({
-  width: 180,
-  height: 270,
+  width: 120,
+  height: 180,
   backgroundColor: "#2b2b2b", // Preto padrão do verso
   borderRadius: theme.spacing(1.5),
   padding: theme.spacing(1.5),
@@ -36,7 +36,7 @@ const CenterOval = styled(Box)(() => ({
 const UnoLogoText = styled(Typography)(() => ({
   fontFamily: '"Arial Black", "Impact", sans-serif',
   fontWeight: 900,
-  fontSize: "4.5rem",
+  fontSize: "3rem",
   color: "white",
   // O skew (inclinação) dá o efeito itálico agressivo do logo original.
   transform: "skewX(-10deg)",

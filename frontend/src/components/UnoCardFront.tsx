@@ -37,8 +37,8 @@ const colorMap: Record<UnoColor, string> = {
 const CardContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "cardColor",
 })<CardContainerProps>(({ theme, cardColor }) => ({
-  width: 180,
-  height: 270,
+  width: 120,
+  height: 180,
   backgroundColor: cardColor,
   borderRadius: theme.spacing(1.5),
   padding: theme.spacing(1.5),
@@ -54,7 +54,7 @@ const CardContainer = styled(Box, {
 // O valor nos cantos superior esquerdo e inferior direito.
 const CornerValue = styled(Typography)({
   fontWeight: "bold",
-  fontSize: "1.8rem",
+  fontSize: "1.2rem",
   fontFamily: '"Arial Black", Gadget, sans-serif',
   position: "absolute",
 });
@@ -75,7 +75,7 @@ const CenterValue = styled(Typography, {
 })<CenterValueProps>(({ cardColor }) => ({
   color: cardColor,
   fontWeight: "bold",
-  fontSize: "5.5rem",
+  fontSize: "3.5rem",
   fontFamily: '"Arial Black", Gadget, sans-serif',
   zIndex: 1, // Garante que o número fique sobre o círculo branco
   textShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
