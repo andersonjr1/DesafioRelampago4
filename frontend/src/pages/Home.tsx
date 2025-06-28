@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography, Button, Container, Paper, Grid } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -29,14 +30,14 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleLogin = () => {
-    // Navegar para tela de login
-    console.log("Navegando para login");
+    navigate('/login');
   };
 
   const handleRegister = () => {
-    // Navegar para tela de registro
-    console.log("Navegando para registro");
+    navigate('/register');
   };
 
   return (
