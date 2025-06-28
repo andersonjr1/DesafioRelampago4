@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Lobby from './pages/Lobby';
 import './App.css';
 
 const theme = createTheme({
@@ -33,6 +34,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/lobby" element={<Lobby />} />
         </Routes>
       </Router>
     </ThemeProvider>
