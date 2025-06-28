@@ -4,6 +4,8 @@ import { useParams } from "react-router-dom";
 import RoomCodeDisplay from "../components/RoomCodeDisplay";
 import UserHand from "../components/UserHand";
 import EnemyHand from "../components/EnemyHand";
+import GameCenter from "../components/GameCenter";
+import GameInformations from "../components/GameInformations";
 
 const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
@@ -30,7 +32,7 @@ const Room: React.FC = () => {
 
       <EnemyHand
         name="Jogador 3"
-        cardCount={5}
+        cardCount={1}
         yelledUno={false}
         disconnected={false}
         position={3}
@@ -45,7 +47,7 @@ const Room: React.FC = () => {
       />
       <UserHand
         name="André"
-        cardCount={7}
+        cardCount={1}
         yelledUno={false}
         hand={[
           {
@@ -93,6 +95,14 @@ const Room: React.FC = () => {
             value: "1",
           },
         ]}
+      />
+      <GameCenter lastPlayedCard={{ color: "red", value: "10" }} />
+      <GameInformations
+        gameDirection="clockwise"
+        gameColor={{
+          color: "red",
+          value: "10",
+        }}
       />
     </>
   );
