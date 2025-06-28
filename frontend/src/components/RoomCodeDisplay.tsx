@@ -107,7 +107,7 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
   return (
     <>
       <RoomCodeContainer>
-        <CodeText component="div">{roomCode.toUpperCase()}</CodeText>
+        <CodeText>{roomCode.toUpperCase()}</CodeText>
 
         <Box
           sx={{

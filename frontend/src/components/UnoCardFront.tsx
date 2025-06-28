@@ -9,6 +9,7 @@ type UnoValue = string | number;
 interface UnoCardProps {
   color: UnoColor;
   value: UnoValue;
+  onSelect?: () => void; // Adiciona a propriedade opcional onSelect
 }
 
 interface CardContainerProps {
@@ -105,14 +106,14 @@ const WildColorDisplay: React.FC = () => (
 
 // --- Componente Principal ---
 
-const UnoCardFront: React.FC<UnoCardProps> = ({ color, value }) => {
+const UnoCardFront: React.FC<UnoCardProps> = ({ color, value, onSelect }) => {
   // Define se a carta é uma carta Coringa (que tem o fundo preto).
   const isWild = color === "black";
   // Obtém a cor de fundo a partir do mapa de cores.
   const backgroundColor = colorMap[color] || colorMap.black;
 
   return (
-    <CardContainer cardColor={backgroundColor}>
+    <CardContainer cardColor={backgroundColor} onClick={onSelect} sx={{ cursor: onSelect ? 'pointer' : 'default' }}>
       {/* Canto superior esquerdo */}
       <CornerValue sx={{ top: 8, left: 16 }}>{value}</CornerValue>
 
