@@ -3,6 +3,7 @@ import { Box, Typography, Container, Grid, Paper } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CreateRoom from "../components/CreateRoom";
 import JoinRoom from "../components/JoinRoom";
+import { useNavigate } from "react-router-dom";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -14,31 +15,23 @@ const StyledHeader = styled(Paper)(({ theme }) => ({
 }));
 
 const Lobby: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleCreateRoom = (roomName: string) => {
     // Gerar código da sala (simulação)
     const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     console.log(`Sala criada: ${roomName} (Código: ${roomCode})`);
 
-    // Aqui você implementaria a lógica para:
-    // 1. Enviar dados para o backend
-    // 2. Navegar para a sala criada
-    // 3. Ou mostrar o código da sala para compartilhar
-
-    alert(
-      `Sala "${roomName}" criada com sucesso!\nCódigo da sala: ${roomCode}\n\nCompartilhe este código com seus amigos!`
-    );
+    // Navegar para a sala criada
+    navigate(`/room/${roomCode}`);
   };
 
   const handleJoinRoom = (roomCode: string) => {
     console.log(`Entrando na sala: ${roomCode}`);
 
-    // Aqui você implementaria a lógica para:
-    // 1. Verificar se a sala existe no backend
-    // 2. Entrar na sala
-    // 3. Navegar para a tela do jogo
-
-    alert(`Entrando na sala: ${roomCode}`);
+    // Navegar para a sala
+    navigate(`/room/${roomCode}`);
   };
 
   return (
