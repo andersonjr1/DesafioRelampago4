@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -73,12 +73,17 @@ const ActionButton = styled(Button)(({ theme }) => ({
 
 interface JoinRoomProps {
   onJoinRoom?: (roomCode: string) => void;
+  errorMessage?: string;
 }
 
-const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
+const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom, errorMessage }) => {
   const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setError(errorMessage || "");
+  }, [errorMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,20 +99,10 @@ const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
     }
 
     setLoading(true);
-    setError("");
 
     try {
       // Simular entrada na sala
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simular verificação se a sala existe
-      const roomExists = Math.random() > 0.3; // 70% de chance de sucesso
-
-      if (!roomExists) {
-        setError("Sala não encontrada. Verifique o código e tente novamente.");
-        setLoading(false);
-        return;
-      }
 
       if (onJoinRoom) {
         onJoinRoom(roomCode.trim().toUpperCase());
@@ -126,7 +121,6 @@ const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
     // Converter para maiúsculas e limitar caracteres
     const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     setRoomCode(value);
-    setError(""); // Limpar erro ao digitar
   };
 
   return (

@@ -4,6 +4,9 @@ import { styled } from "@mui/material/styles";
 import CreateRoom from "../components/CreateRoom";
 import JoinRoom from "../components/JoinRoom";
 import { useNavigate } from "react-router-dom";
+import io from "socket.io-client";
+import { type Socket } from "socket.io-client";
+import { SOCKET_URL } from "../utils/constants";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -15,23 +18,45 @@ const StyledHeader = styled(Paper)(({ theme }) => ({
 }));
 
 const Lobby: React.FC = () => {
+  const [socket, setSocket] = React.useState<Socket | null>(null);
+  const [errorJoin, setErrorJoin] = React.useState("");
+
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    const newSocket = io(SOCKET_URL);
+
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+      console.log("Connected to Socket.IO server");
+    });
+
+    newSocket.on("ROOM_CREATED", (data) => {
+      console.log(data);
+      navigate(`/room/${data.roomId}`);
+    });
+
+    newSocket.on("ROOM_JOINED", (data) => {
+      console.log(data);
+      if (!data.success) {
+        setErrorJoin(data.message);
+        return;
+      }
+      navigate(`/room/${data.roomId}`);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
   const handleCreateRoom = (roomName: string) => {
-    // Gerar código da sala (simulação)
-    const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    console.log(`Sala criada: ${roomName} (Código: ${roomCode})`);
-
-    // Navegar para a sala criada
-    navigate(`/room/${roomCode}`);
+    socket?.emit("CREATE_ROOM", { roomName });
   };
 
   const handleJoinRoom = (roomCode: string) => {
-    console.log(`Entrando na sala: ${roomCode}`);
-
-    // Navegar para a sala
-    navigate(`/room/${roomCode}`);
+    socket?.emit("JOIN_ROOM", { roomCode });
   };
 
   return (
@@ -60,7 +85,7 @@ const Lobby: React.FC = () => {
 
         {/* Componente Entrar em Sala */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <JoinRoom onJoinRoom={handleJoinRoom} />
+          <JoinRoom onJoinRoom={handleJoinRoom} errorMessage={errorJoin} />
         </Grid>
       </Grid>
 
@@ -97,10 +122,10 @@ const Lobby: React.FC = () => {
 
           <Grid size={{ xs: 12, md: 4 }}>
             <Paper sx={{ p: 3, height: "100%" }}>
+              <Typography variant="h6" gutterBottom color="primary">
+                3. Começar a Jogar
+              </Typography>
               <Typography variant="body2">
-                <Typography variant="h6" gutterBottom color="primary">
-                  3. Começar a Jogar
-                </Typography>
                 Quando todos estiverem na sala, o criador pode iniciar a partida
                 de UNO e a diversão começa!
               </Typography>
