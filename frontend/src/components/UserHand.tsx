@@ -15,10 +15,12 @@ interface UserHandProps {
   cardCount: number;
   yelledUno: boolean;
   hand: Card[];
+  playerId: string;
+  currentPlayerId: string;
 }
 
 // --- Styled Components ---
-const HandContainer = styled(Box)(({ theme }) => ({
+const HandContainer = styled(Box)<{ isCurrentPlayer: boolean }>(({ theme, isCurrentPlayer }) => ({
   position: "fixed",
   bottom: 0,
   left: "50%",
@@ -29,9 +31,11 @@ const HandContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
   padding: theme.spacing(2),
   zIndex: 100,
-  backgroundColor: "rgba(255, 255, 255, 0.95)",
+  backgroundColor: isCurrentPlayer ? "rgba(25, 118, 210, 0.15)" : "rgba(255, 255, 255, 0.95)",
   borderRadius: `${theme.spacing(1)} ${theme.spacing(1)} 0 0`,
-  boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.1)",
+  boxShadow: isCurrentPlayer ? "0 -2px 20px rgba(25, 118, 210, 0.3)" : "0 -2px 10px rgba(0, 0, 0, 0.1)",
+  border: isCurrentPlayer ? `3px solid ${theme.palette.primary.main}` : "3px solid transparent",
+  transition: "all 0.3s ease-in-out",
 }));
 
 const CardsContainer = styled(Box)(({ theme }) => ({
@@ -78,7 +82,10 @@ const UserHand: React.FC<UserHandProps> = ({
   cardCount,
   yelledUno,
   hand,
+  playerId,
+  currentPlayerId,
 }) => {
+  const isCurrentPlayer = playerId === currentPlayerId;
   const handleCardSelect = (cardIndex: number) => {
     // Lógica para selecionar uma carta
     console.log(
@@ -88,7 +95,7 @@ const UserHand: React.FC<UserHandProps> = ({
   };
 
   return (
-    <HandContainer>
+    <HandContainer isCurrentPlayer={isCurrentPlayer}>
       <Profile name={name} cardCount={cardCount} yelledUno={yelledUno} />
       
       {hand.length > 0 && (

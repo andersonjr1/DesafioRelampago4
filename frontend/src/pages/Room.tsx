@@ -66,8 +66,10 @@ const Room: React.FC = () => {
         name="Jogador 2"
         cardCount={7}
         yelledUno={false}
-        disconnected={false}
+        disconnected={true}
         position={2}
+        playerId="2"
+        currentPlayerId="3"
       />
 
       <EnemyHand
@@ -76,6 +78,8 @@ const Room: React.FC = () => {
         yelledUno={false}
         disconnected={false}
         position={3}
+        playerId="3"
+        currentPlayerId="2"
       />
 
       <EnemyHand
@@ -84,8 +88,17 @@ const Room: React.FC = () => {
         yelledUno={false}
         disconnected={false}
         position={4}
+        playerId="4"
+        currentPlayerId="2"
       />
-      <UserHand name="André" cardCount={1} yelledUno={false} hand={handUser} />
+      <UserHand
+        name="André"
+        cardCount={1}
+        yelledUno={false}
+        hand={handUser}
+        playerId="1"
+        currentPlayerId="2"
+      />
       <GameCenter lastPlayedCard={{ color: "red", value: "10" }} />
       <GameInformations
         gameDirection="clockwise"
