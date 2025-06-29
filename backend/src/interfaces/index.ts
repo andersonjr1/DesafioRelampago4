@@ -1,13 +1,15 @@
 // src/interfaces/index.ts
+import { Request } from "express";
+import { JwtPayload } from "jsonwebtoken";
+
+interface AuthRequest extends Request {
+  user?: JwtPayload;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
-}
-
-interface JwtPayload {
-  userId: string;
-  name: string;
 }
 
 interface User {
@@ -17,4 +19,4 @@ interface User {
   password: string;
 }
 
-export { User, JwtPayload, ApiResponse };
+export { User, ApiResponse, AuthRequest };

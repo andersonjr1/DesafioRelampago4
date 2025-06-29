@@ -1,6 +1,7 @@
 // src/controllers/authController.ts
 import { Request, Response } from "express";
 import * as authServices from "../services/authServices";
+import { AuthRequest } from "../interfaces/index";
 
 const login = async (req: Request, res: Response) => {
   try {
@@ -41,4 +42,16 @@ const logout = (req: Request, res: Response) => {
   }
 };
 
-export { login, logout };
+const checkLogin = (req: AuthRequest, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ error: "Usuário não autenticado" });
+    return;
+  }
+
+  res.json({
+    id: req.user.userId,
+    name: req.user.name,
+  });
+};
+
+export { login, logout, checkLogin };
