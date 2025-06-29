@@ -50,6 +50,7 @@ const ColorOption = styled(Button)<{ gamecolor: string }>(
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    color: "black",
     gap: theme.spacing(1),
     padding: theme.spacing(2),
     border: `2px solid ${gamecolor}`,
@@ -109,12 +110,12 @@ const ColorChoiceModal: React.FC<ColorChoiceModalProps> = ({
     // Definir todas as cores disponíveis para escolha
     const availableColors = ["red", "blue", "green", "yellow"];
     const counts: { [key: string]: number } = {};
-    
+
     // Inicializar todas as cores com 0
-    availableColors.forEach(color => {
+    availableColors.forEach((color) => {
       counts[color] = 0;
     });
-    
+
     // Contar cada cor na mão (se existir)
     if (hand && hand.length > 0) {
       hand.forEach((card) => {
@@ -156,7 +157,7 @@ const ColorChoiceModal: React.FC<ColorChoiceModalProps> = ({
           {colorCounts.map(({ color, count }) => {
             const colorValue = colorMap[color] || color;
             const colorName = colorNames[color] || color;
-            
+
             return (
               <ColorOption
                 key={color}
@@ -166,7 +167,11 @@ const ColorChoiceModal: React.FC<ColorChoiceModalProps> = ({
                 <ColorIcon gamecolor={colorValue} />
                 <ColorName>{colorName}</ColorName>
                 <CountChip
-                  label={count === 0 ? 'Sem cartas' : `${count} carta${count > 1 ? 's' : ''}`}
+                  label={
+                    count === 0
+                      ? "Sem cartas"
+                      : `${count} carta${count > 1 ? "s" : ""}`
+                  }
                   size="small"
                   variant="outlined"
                 />
