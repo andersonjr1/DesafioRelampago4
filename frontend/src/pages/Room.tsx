@@ -6,10 +6,50 @@ import UserHand from "../components/UserHand";
 import EnemyHand from "../components/EnemyHand";
 import GameCenter from "../components/GameCenter";
 import GameInformations from "../components/GameInformations";
+import ColorChoiceModal from "../components/ColorChoiceModal";
+
+const handUser = [
+  {
+    color: "red",
+    value: "1",
+  },
+  {
+    color: "red",
+    value: "2",
+  },
+  {
+    color: "red",
+    value: "3",
+  },
+  {
+    color: "red",
+    value: "4",
+  },
+  {
+    color: "red",
+    value: "5",
+  },
+  {
+    color: "red",
+    value: "6",
+  },
+  {
+    color: "red",
+    value: "7",
+  },
+  {
+    color: "red",
+    value: "8",
+  },
+  {
+    color: "red",
+    value: "9",
+  },
+];
 
 const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
-
+  const [openColorChoiceModal, setOpenColorChoiceModal] = React.useState(true);
   return (
     <>
       <Box
@@ -45,63 +85,22 @@ const Room: React.FC = () => {
         disconnected={false}
         position={4}
       />
-      <UserHand
-        name="André"
-        cardCount={1}
-        yelledUno={false}
-        hand={[
-          {
-            color: "red",
-            value: "1",
-          },
-          {
-            color: "red",
-            value: "2",
-          },
-          {
-            color: "red",
-            value: "3",
-          },
-          {
-            color: "red",
-            value: "4",
-          },
-          {
-            color: "red",
-            value: "5",
-          },
-          {
-            color: "red",
-            value: "6",
-          },
-          {
-            color: "red",
-            value: "7",
-          },
-          {
-            color: "red",
-            value: "8",
-          },
-          {
-            color: "red",
-            value: "9",
-          },
-          {
-            color: "red",
-            value: "10",
-          },
-          {
-            color: "green",
-            value: "1",
-          },
-        ]}
-      />
+      <UserHand name="André" cardCount={1} yelledUno={false} hand={handUser} />
       <GameCenter lastPlayedCard={{ color: "red", value: "10" }} />
       <GameInformations
         gameDirection="clockwise"
         gameColor={{
           color: "red",
           value: "10",
+        }}
+      />
+
+      <ColorChoiceModal
+        open={openColorChoiceModal}
+        hand={handUser}
+        onColorSelect={(color) => {
+          setOpenColorChoiceModal(!openColorChoiceModal);
+          console.log(color);
         }}
       />
     </>
