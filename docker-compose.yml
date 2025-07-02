@@ -1,5 +1,21 @@
 services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+      - game-server-1
+      - game-server-2
+    networks:
+      - game-network
+
   backend:
+    container_name: backend
     build:
       context: ./backend
     ports:
@@ -11,8 +27,33 @@ services:
       - redis
     volumes:
       - ./backend:/app
+    networks:
+      - game-network
+
+  game-server-1:
+    container_name: game-server-1
+    build:
+      context: ./game-server
+    ports:
+      - "4001:4001"
+    depends_on:
+      - redis
+    networks:
+      - game-network
+
+  game-server-2:
+    container_name: game-server-2
+    build:
+      context: ./game-server
+    ports:
+      - "4002:4002"
+    depends_on:
+      - redis
+    networks:
+      - game-network
 
   db:
+    container_name: db
     image: postgres:15
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -23,11 +64,20 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - game-network
 
   redis:
+    container_name: redis
     image: redis:7
     ports:
       - "6379:6379"
+    networks:
+      - game-network
 
 volumes:
   db_data:
+
+networks:
+  game-network:
+    driver: bridge
