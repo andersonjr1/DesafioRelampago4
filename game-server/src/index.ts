@@ -184,6 +184,7 @@ type ServerMessageType =
   | 'JOIN_ROOM'
   | 'DELETE_ROOM'
   | 'START_GAME'
+  | 'UPDATE_HAND'
   | 'UPDATE_ROOM'
   | 'UPDATE_PLAYER'
   | 'ERROR';
@@ -656,6 +657,10 @@ wss.on('connection', (ws: WebSocket) => {
             ws.send(JSON.stringify({ type: 'ERROR', message: 'Erro no estado do jogo' }));
             return;
           }
+
+          if (currentPlayer.yelledUno){
+            currentPlayer.yelledUno = false;
+          }
           
           // Comprar carta
           const newCard = getRandomCard();
@@ -710,6 +715,11 @@ wss.on('connection', (ws: WebSocket) => {
             ws.send(JSON.stringify({ type: 'ERROR', message: 'Você só pode gritar UNO quando tiver exatamente 1 carta' }));
             return;
           }
+
+          if (currentPlayer.yelledUno) {
+            ws.send(JSON.stringify({ type: 'ERROR', message: 'Você já gritou UNO' }));
+            return;
+          }
           
           currentPlayer.yelledUno = true;
           
@@ -743,6 +753,14 @@ wss.on('connection', (ws: WebSocket) => {
           
           // Penalizar jogador acusado
           accusedPlayer.hand.push(...dealCards(2));
+          
+          // Enviar mão atualizada para o jogador acusado
+          if (accusedPlayer.ws && !accusedPlayer.disconnected) {
+            sendToPlayer(accusedPlayer, {
+              type: 'UPDATE_HAND',
+              hand: accusedPlayer.hand
+            });
+          }
           
           broadcastToRoom(currentRoom, {
             type: 'UPDATE_ROOM',
