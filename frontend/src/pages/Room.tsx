@@ -8,6 +8,7 @@ import GameCenter from "../components/GameCenter";
 import GameInformations from "../components/GameInformations";
 import ColorChoiceModal from "../components/ColorChoiceModal";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
+import { useUserContext } from "../contexts/UserContext";
 import { ReadyState } from "react-use-websocket";
 
 const handUser = [
@@ -53,14 +54,56 @@ const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const [openColorChoiceModal, setOpenColorChoiceModal] = React.useState(true);
   const { sendMessage, lastMessage, readyState } = useWebSocketContext();
+  const { user } = useUserContext();
+
+  // Console log user information when component mounts or user changes
+  React.useEffect(() => {
+    console.log("User information in Room:", {
+      userId: user.id,
+      userName: user.name,
+      roomCode: code,
+    });
+  }, [user, code]);
 
   // Handle incoming messages specific to the room
   React.useEffect(() => {
     if (lastMessage !== null) {
       try {
         const data = JSON.parse(lastMessage.data);
-        
+
         switch (data.type) {
+          case "CREATE_ROOM":
+            console.log("Room created:", data);
+            // Handle room creation response
+            break;
+          case "JOIN_ROOM":
+            console.log("Player joined room:", data);
+            // Handle player joining room
+            break;
+          case "DELETE_ROOM":
+            console.log("Room deleted:", data);
+            // Handle room deletion - maybe redirect to lobby
+            break;
+          case "START_GAME":
+            console.log("Game started:", data);
+            // Handle game start - update UI to show game state
+            break;
+          case "UPDATE_HAND":
+            console.log("Hand updated:", data);
+            // Handle player hand updates
+            break;
+          case "UPDATE_ROOM":
+            console.log("Room updated:", data);
+            // Handle room state updates (players, settings, etc.)
+            break;
+          case "UPDATE_PLAYER":
+            console.log("Player updated:", data);
+            // Handle individual player updates
+            break;
+          case "ERROR":
+            console.error("Server error:", data);
+            // Handle server errors - show error message to user
+            break;
           case "GAME_STATE_UPDATE":
             console.log("Game state updated:", data);
             // Handle game state updates
@@ -74,7 +117,7 @@ const Room: React.FC = () => {
             // Handle card played events
             break;
           default:
-            // Let other components handle other message types
+            console.log("Unknown message type:", data.type, data);
             break;
         }
       } catch (error) {
@@ -138,8 +181,8 @@ const Room: React.FC = () => {
         playerId="1"
         currentPlayerId="2"
       />
-      <GameCenter 
-        lastPlayedCard={{ color: "red", value: "10" }} 
+      <GameCenter
+        lastPlayedCard={{ color: "red", value: "10" }}
         onSkipTurn={handleSkipTurn}
       />
       <GameInformations

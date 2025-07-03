@@ -408,13 +408,14 @@ wss.on('connection', (ws: WebSocket) => {
           ws.send(JSON.stringify({
             type: 'CREATE_ROOM',
             success: true,
+            yourId: playerId,
+            yourName: playerName,
             room: {
               id: roomId,
               roomName,
               ownerId: playerId,
               players: [{ id: playerId, name: playerName, cardCount: 0 }]
             },
-            playerId
           }));
           break;
         }
@@ -460,7 +461,9 @@ wss.on('connection', (ws: WebSocket) => {
           ws.send(JSON.stringify({
             type: 'JOIN_ROOM',
             success: true,
-            room
+            yourId: playerId,
+            yourName: playerName,
+            room,
           }));
           
           broadcastToRoom(room, getRoomState(room));

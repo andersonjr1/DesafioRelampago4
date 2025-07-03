@@ -9,6 +9,7 @@ import Lobby from "./pages/Lobby";
 import Room from "./pages/Room";
 import "./App.css";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
+import { UserProvider } from "./contexts/UserContext";
 
 const theme = createTheme({
   palette: {
@@ -29,20 +30,22 @@ const theme = createTheme({
 
 function App() {
   return (
-    <WebSocketProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/lobby" element={<Lobby />} />
-            <Route path="/room/:code" element={<Room />} />
-          </Routes>
-        </Router>
-      </ThemeProvider>
-    </WebSocketProvider>
+    <UserProvider>
+      <WebSocketProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/lobby" element={<Lobby />} />
+              <Route path="/room/:code" element={<Room />} />
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </WebSocketProvider>
+    </UserProvider>
   );
 }
 

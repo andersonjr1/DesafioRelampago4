@@ -6,6 +6,7 @@ import JoinRoom from "../components/JoinRoom";
 import { useNavigate } from "react-router-dom";
 import { ReadyState } from "react-use-websocket";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
+import { useUserContext } from "../contexts/UserContext";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -21,6 +22,7 @@ const Lobby: React.FC = () => {
   const navigate = useNavigate();
   const { sendMessage, lastMessage, readyState, connectionStatus } =
     useWebSocketContext();
+  const { updateUserFromWebSocket } = useUserContext();
 
   // Handle incoming messages
   React.useEffect(() => {
@@ -30,7 +32,7 @@ const Lobby: React.FC = () => {
 
         switch (data.type) {
           case "CREATE_ROOM":
-            console.log(data);
+            updateUserFromWebSocket(data);
             navigate(`/room/${data.room.id}`);
             break;
           case "JOIN_ROOM":
@@ -39,6 +41,7 @@ const Lobby: React.FC = () => {
               setErrorJoin(data.message);
               return;
             }
+            updateUserFromWebSocket(data);
             navigate(`/room/${data.room.id}`);
             break;
           default:
