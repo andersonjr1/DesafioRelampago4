@@ -11,50 +11,54 @@ import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
 import { ReadyState } from "react-use-websocket";
 
-const handUser = [
-  {
-    color: "red",
-    value: "1",
-  },
-  {
-    color: "red",
-    value: "2",
-  },
-  {
-    color: "red",
-    value: "3",
-  },
-  {
-    color: "red",
-    value: "4",
-  },
-  {
-    color: "red",
-    value: "5",
-  },
-  {
-    color: "red",
-    value: "6",
-  },
-  {
-    color: "red",
-    value: "7",
-  },
-  {
-    color: "red",
-    value: "8",
-  },
-  {
-    color: "red",
-    value: "9",
-  },
-];
+interface Card {
+  color: string;
+  value: string;
+  chosenColor?: string;
+}
+
+interface Player {
+  id: string;
+  name: string;
+  cardCount?: number;
+  alreadyBought?: boolean;
+  isTheirTurn?: boolean;
+  disconnected?: boolean;
+  yelledUno?: boolean;
+  hand?: Card[];
+}
+
+function getPlayerOrder(playersArray: Player[], startPlayerId: string) {
+  const arrayOrder = [];
+  const beforeOrder: number[] = [];
+  const afterOrder: number[] = [];
+  const startIndex = playersArray.findIndex(
+    (player) => startPlayerId === player.id
+  );
+  arrayOrder.push(startIndex);
+  playersArray.forEach((_, index) => {
+    if (index == startIndex) {
+      return;
+    }
+    if (index <= startIndex) {
+      beforeOrder.push(index);
+    } else {
+      afterOrder.push(index);
+    }
+  });
+  arrayOrder.push(...afterOrder);
+  arrayOrder.push(...beforeOrder);
+  return arrayOrder;
+}
 
 const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const [openColorChoiceModal, setOpenColorChoiceModal] = React.useState(true);
   const { sendMessage, lastMessage, readyState } = useWebSocketContext();
   const { user } = useUserContext();
+  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [playersOrder, setPlayersOrder] = React.useState<number[]>([]);
+  const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
 
   // Console log user information when component mounts or user changes
   React.useEffect(() => {
@@ -73,8 +77,10 @@ const Room: React.FC = () => {
 
         switch (data.type) {
           case "CREATE_ROOM":
-            console.log("Room created:", data);
-            // Handle room creation response
+            console.log(data);
+            console.log("Room updated:", data.room.players);
+            setPlayers(data.room.players);
+            setPlayersOrder(getPlayerOrder(data.room.players, user.id));
             break;
           case "JOIN_ROOM":
             console.log("Player joined room:", data);
@@ -93,8 +99,9 @@ const Room: React.FC = () => {
             // Handle player hand updates
             break;
           case "UPDATE_ROOM":
-            console.log("Room updated:", data);
-            // Handle room state updates (players, settings, etc.)
+            console.log("Room updated:", data.room.players);
+            setPlayers(data.room.players);
+            setPlayersOrder(getPlayerOrder(data.room.players, user.id));
             break;
           case "UPDATE_PLAYER":
             console.log("Player updated:", data);
@@ -126,12 +133,12 @@ const Room: React.FC = () => {
     }
   }, [lastMessage]);
 
-  const handleSkipTurn = () => {
-    if (readyState === ReadyState.OPEN) {
-      sendMessage(JSON.stringify({ type: "SKIP_TURN", roomCode: code }));
-    }
-  };
-
+  // const handleSkipTurn = () => {
+  //   if (readyState === ReadyState.OPEN) {
+  //     sendMessage(JSON.stringify({ type: "SKIP_TURN", roomCode: code }));
+  //   }
+  // };
+  console.log(playersOrder);
   return (
     <>
       <Box
@@ -144,43 +151,35 @@ const Room: React.FC = () => {
       >
         {code && <RoomCodeDisplay roomCode={code} />}
       </Box>
-      <EnemyHand
-        name="Jogador 2"
-        cardCount={7}
-        yelledUno={false}
-        disconnected={true}
-        position={2}
-        playerId="2"
-        currentPlayerId="3"
-      />
+      {playersOrder.map((playerIndex, position) => {
+        const player = players[playerIndex];
+        if (position == 0) {
+          return (
+            <UserHand
+              name={player.name || ""}
+              cardCount={player.cardCount || 0}
+              yelledUno={player.yelledUno || false}
+              hand={player.hand || []}
+              playerId={player.id || ""}
+              currentPlayerId={currentPlayerId}
+            />
+          );
+        }
+        return (
+          <EnemyHand
+            key={player.id}
+            name={player.name || ""}
+            cardCount={player.cardCount || 0}
+            yelledUno={player.yelledUno || false}
+            disconnected={player.disconnected || false}
+            position={position + 1}
+            playerId={player.id || ""}
+            currentPlayerId={currentPlayerId}
+          />
+        );
+      })}
 
-      <EnemyHand
-        name="Jogador 3"
-        cardCount={1}
-        yelledUno={false}
-        disconnected={false}
-        position={3}
-        playerId="3"
-        currentPlayerId="2"
-      />
-
-      <EnemyHand
-        name="Jogador 4"
-        cardCount={3}
-        yelledUno={false}
-        disconnected={false}
-        position={4}
-        playerId="4"
-        currentPlayerId="2"
-      />
-      <UserHand
-        name="André"
-        cardCount={1}
-        yelledUno={false}
-        hand={handUser}
-        playerId="1"
-        currentPlayerId="2"
-      />
+      {/*
       <GameCenter
         lastPlayedCard={{ color: "red", value: "10" }}
         onSkipTurn={handleSkipTurn}
@@ -200,7 +199,7 @@ const Room: React.FC = () => {
           setOpenColorChoiceModal(!openColorChoiceModal);
           console.log(color);
         }}
-      />
+      /> */}
     </>
   );
 };
