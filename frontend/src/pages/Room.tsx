@@ -59,6 +59,7 @@ const Room: React.FC = () => {
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [playersOrder, setPlayersOrder] = React.useState<number[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
+  const [owner, setOwner] = React.useState<boolean>(false);
 
   // Console log user information when component mounts or user changes
   React.useEffect(() => {
@@ -77,10 +78,9 @@ const Room: React.FC = () => {
 
         switch (data.type) {
           case "CREATE_ROOM":
-            console.log(data);
-            console.log("Room updated:", data.room.players);
             setPlayers(data.room.players);
             setPlayersOrder(getPlayerOrder(data.room.players, user.id));
+            setOwner(true);
             break;
           case "JOIN_ROOM":
             console.log("Player joined room:", data);
@@ -99,7 +99,6 @@ const Room: React.FC = () => {
             // Handle player hand updates
             break;
           case "UPDATE_ROOM":
-            console.log("Room updated:", data.room.players);
             setPlayers(data.room.players);
             setPlayersOrder(getPlayerOrder(data.room.players, user.id));
             break;
@@ -149,7 +148,7 @@ const Room: React.FC = () => {
           zIndex: 1000,
         }}
       >
-        {code && <RoomCodeDisplay roomCode={code} />}
+        {code && <RoomCodeDisplay roomCode={code} owner={owner} />}
       </Box>
       {playersOrder.map((playerIndex, position) => {
         const player = players[playerIndex];

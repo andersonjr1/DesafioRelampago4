@@ -12,6 +12,8 @@ import {
 import { styled } from "@mui/material/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useNavigate } from "react-router-dom";
 
 const RoomCodeContainer = styled(Box)(({ theme }) => ({
@@ -67,11 +69,33 @@ const DeleteButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+const StartButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.success.main,
+  borderColor: theme.palette.success.main,
+  "&:hover": {
+    borderColor: theme.palette.success.dark,
+    backgroundColor: "rgba(76, 175, 80, 0.04)",
+  },
+}));
+
+const DisconnectButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.warning.main,
+  borderColor: theme.palette.warning.main,
+  "&:hover": {
+    borderColor: theme.palette.warning.dark,
+    backgroundColor: "rgba(255, 152, 0, 0.04)",
+  },
+}));
+
 interface RoomCodeDisplayProps {
   roomCode: string;
+  owner: boolean;
 }
 
-const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
+const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
+  roomCode,
+  owner,
+}) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [copySuccess, setCopySuccess] = React.useState(false);
@@ -86,8 +110,23 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
     }
   };
 
-  const handleDeleteRoom = () => {
+  const handleDelete = () => {
     setDeleteDialogOpen(true);
+  };
+
+  const handleStart = () => {
+    // Logic to start the game
+    console.log(`Starting game for room: ${roomCode}`);
+    // Here you would send a WebSocket message to start the game
+    // Example: sendMessage(JSON.stringify({ type: "START_GAME", roomCode }));
+  };
+
+  const handleDisconnect = () => {
+    // Logic to disconnect from the room
+    console.log(`Disconnecting from room: ${roomCode}`);
+    // Here you would send a WebSocket message to leave the room
+    // Example: sendMessage(JSON.stringify({ type: "LEAVE_ROOM", roomCode }));
+    navigate("/lobby");
   };
 
   const confirmDeleteRoom = () => {
@@ -126,14 +165,38 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
             {copySuccess ? "Copiado!" : "Copiar Código"}
           </ActionButton>
 
-          <DeleteButton
-            variant="outlined"
-            size="small"
-            startIcon={<DeleteIcon />}
-            onClick={handleDeleteRoom}
-          >
-            Deletar Sala
-          </DeleteButton>
+          {owner && (
+            <StartButton
+              variant="outlined"
+              size="small"
+              startIcon={<PlayArrowIcon />}
+              onClick={handleStart}
+            >
+              Iniciar Jogo
+            </StartButton>
+          )}
+
+          {!owner && (
+            <DisconnectButton
+              variant="outlined"
+              size="small"
+              startIcon={<ExitToAppIcon />}
+              onClick={handleDisconnect}
+            >
+              Desconectar
+            </DisconnectButton>
+          )}
+
+          {owner && (
+            <DeleteButton
+              variant="outlined"
+              size="small"
+              startIcon={<DeleteIcon />}
+              onClick={handleDelete}
+            >
+              Deletar Sala
+            </DeleteButton>
+          )}
         </Box>
       </RoomCodeContainer>
 
