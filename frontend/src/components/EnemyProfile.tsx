@@ -15,9 +15,11 @@ import { styled, keyframes } from "@mui/material/styles";
 import StyleIcon from "@mui/icons-material/Style"; // Ícone de cartas empilhadas
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"; // Ícone de sucesso
 import CampaignIcon from "@mui/icons-material/Campaign"; // Ícone para "gritar" ou "denunciar"
+import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 // --- Interfaces ---
 interface EnemyProfileProps {
+  id: string;
   name: string;
   cardCount: number;
   yelledUno: boolean;
@@ -94,12 +96,14 @@ const UnoStatusChip = styled(Chip)(({ theme }) => ({
 
 // --- Componente Principal ---
 const EnemyProfile: React.FC<EnemyProfileProps> = ({
+  id,
   name,
   cardCount,
   yelledUno,
 }) => {
+  const { sendMessage } = useWebSocketContext();
   const handleReportUno = () => {
-    console.log(`Denunciando que ${name} não gritou UNO!`);
+    sendMessage(JSON.stringify({ type: "ACCUSE_NO_UNO", playerId: id }));
   };
 
   // Determina o status do jogador para aplicar estilos dinâmicos
@@ -111,7 +115,6 @@ const EnemyProfile: React.FC<EnemyProfileProps> = ({
 
   const status = getStatus();
   const showReportButton = status === "danger";
-
   return (
     <ProfileCard elevation={2} status={status}>
       <CardContent>

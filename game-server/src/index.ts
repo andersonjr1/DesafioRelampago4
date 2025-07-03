@@ -80,102 +80,17 @@ app.use(express.json());
  * Cada tipo corresponde a uma ação que o jogador pode realizar.
  */
 type MessageType =
-  /**
-   * Cria uma nova sala de jogo.
-   * > **Recebe**: `{ roomId: string, roomName: string, playerName: string }`
-   * > **Lógica**: Usa o roomId fornecido para criar a sala. Adiciona a nova sala ao objeto `rooms` e define o jogador criador como o `ownerId`.
-   * > **Resposta**: Envia uma mensagem `CREATE_ROOM` ao criador com os dados da sala.
-   */
   | 'CREATE_ROOM'
-
-  /**
-   * Adiciona o jogador a uma sala existente.
-   * > **Recebe**: `{ roomId: string, playerName: string }`
-   * > **Lógica**: Valida se a sala existe e se não está cheia. Adiciona o jogador à lista `players` da sala.
-   * > **Resposta**: Envia `JOIN_ROOM` com sucesso para o jogador e transmite `UPDATE_ROOM` para todos na sala.
-   */
   | 'JOIN_ROOM'
-
-  /**
-   * Exclui uma sala de jogo.
-   * > **Recebe**: `{ roomId: string }`
-   * > **Lógica**: Verifica se o remetente é o `ownerId` da sala. Remove a sala do objeto `rooms` e desconecta todos os jogadores.
-   * > **Resposta**: Envia `DELETE_ROOM` com sucesso para o dono e todos os jogadores.
-
-   */
   | 'DELETE_ROOM'
-
-  /**
-   * Inicia a partida.
-   * > **Recebe**: `{ roomId: string }`
-   * > **Lógica**: Verifica se o remetente é o dono e se a sala tem o número mínimo de jogadores (ex: 3). Da 7 cartas para cada jogador (Sem remover do baralho unoCards) escolhe quem é o jogador da vez aleatoriamente, e coloca o estado do jogo como "IN_GAME".
-   * > **Resposta**: Transmite uma mensagem `UPDATE_ROOM` para todos na sala com o estado inicial do jogo.
-   */
   | 'START_GAME'
-
-  /**
-   * Executa a jogada de uma carta.
-   * > **Recebe**: `{ card: Card }`
-   * > **Lógica**: Confere se é o turno do jogador (`isTheirTurn`) e se a carta é válida (combina com `currentCard` por cor ou valor). Aplica o efeito da carta (pular, inverter, comprar, etc.).
-   * > **Resposta**: Transmite `UPDATE_ROOM` para todos com o novo estado do jogo.
-   */
   | 'PLAY_CARD'
-
-  /**
-   * Compra uma carta do baralho.
-   * > **Recebe**: `{}` (nada)
-   * > **Lógica**: Verifica se é o turno do jogador (`isTheirTurn`) e se ele ainda não comprou (`alreadyBought` é falso). Adiciona uma carta aleatória à mão do jogador do baralho unoCards sem remover nenhuma carta.
-   * > **Resposta**: Envia `UPDATE_PLAYER` com a nova mão para o jogador e `UPDATE_ROOM` para os outros (apenas com a nova contagem de cartas).
-   */
   | 'BUY_CARD'
-
-  /**
-   * Passa a vez após ter comprado uma carta e não poder jogar.
-   * > **Recebe**: `{}` (nada)
-   * > **Lógica**: Verifica se o jogador já comprou uma carta nesta rodada. Passa o turno para o próximo jogador.
-   * > **Resposta**: Transmite `UPDATE_ROOM` para avançar o turno.
-   */
   | 'SKIP_ROUND'
-
-  /**
-   * Jogador informa que tem apenas uma carta na mão.
-   * > **Recebe**: `{}` (nada)
-   * > **Lógica**: Valida se o jogador tem exatamente 2 cartas antes de jogar a penúltima. Define a propriedade `yelledUno` do jogador como `true`.
-   * > **Resposta**: Transmite `UPDATE_PLAYER` para notificar os outros sobre o "UNO" gritado.
-   */
   | 'YELL_UNO'
-
-  /**
-   * Acusa um oponente de não ter gritado "UNO!".
-   * > **Recebe**: `{ playerId: string }` (ID do jogador a ser acusado)
-   * > **Lógica**: Verifica se o jogador acusado tem apenas 1 carta e se `yelledUno` é `false`. Se a acusação for válida, o jogador penalizado compra 2 cartas aleatorias.
-   * > **Resposta**: Transmite `UPDATE_ROOM` com as novas contagens de cartas.
-   */
   | 'ACCUSE_NO_UNO'
-
-  /**
-   * Define a cor após jogar uma carta Curinga.
-   * > **Recebe**: `{ color: string }`
-   * > **Lógica**: Valida se o estado atual do jogo é `CHOOSING_COLOR` e se o remetente é o `currentPlayer`. Atualiza a cor do `currentCard["chosenColor"]` e define o estado como `null`. 
-
-   * > **Resposta**: Transmite `UPDATE_ROOM` com a nova cor ativa.
-   */
   | 'CHOOSE_COLOR'
-
-  /**
-   * Reconecta um jogador que havia perdido a conexão.
-   * > **Recebe**: `{ playerId: string }`
-   * > **Lógica**: Procura pelo `playerId` na sala e reatribui a nova conexão WebSocket (`ws`) ao jogador, marcando-o como `disconnected: false`.
-   * > **Resposta**: Envia ao jogador o estado atual completo da sala (`UPDATE_ROOM`).
-   */
   | 'RECONNECT'
-
-  /**
-   * Gerencia a desconexão de um jogador.
-   * > **Recebe**: `{}` (nada, geralmente o servidor detecta o fechamento da conexão)
-   * > **Lógica**: Em vez de remover o jogador. Se todos os jogadores estiverem desconectados, a sala pode ser removida.
-   * > **Resposta**: Transmite `UPDATE_ROOM` para notificar os outros jogadores.
-   */
   | 'DISCONNECT';
 
 // Define as mensagens que o servidor pode enviar.
@@ -184,14 +99,14 @@ type ServerMessageType =
   | 'JOIN_ROOM'
   | 'DELETE_ROOM'
   | 'START_GAME'
-  | 'UPDATE_HAND'
+  // | 'UPDATE_HAND'
   | 'UPDATE_ROOM'
-  | 'UPDATE_PLAYER'
+  // | 'UPDATE_PLAYER'
   | 'ERROR';
 
 type GameStatus = "WAITING" | "IN_GAME" | "FINISHED";
 
-type GameDirection = "clockwise" | "counter-clockwise";
+type GameDirection = "clockwise" | "anticlockwise";
 
 type AdditionalState = "CHOOSING_COLOR" | "PLAYER_DISCONNECTED" | null;
 
@@ -609,7 +524,7 @@ wss.on('connection', (ws: WebSocket) => {
               break;
               
             case 'Reverse':
-              currentRoom.gameDirection = currentRoom.gameDirection === 'clockwise' ? 'counter-clockwise' : 'clockwise';
+              currentRoom.gameDirection = currentRoom.gameDirection === 'clockwise' ? 'anticlockwise' : 'clockwise';
               if (currentRoom.players.length === 2) {
                 skipNext = true; // Em jogo de 2 jogadores, reverse funciona como skip
               }
@@ -688,14 +603,18 @@ wss.on('connection', (ws: WebSocket) => {
           currentPlayer.hand.push(newCard);
           currentPlayer.alreadyBought = true;
           
-          // Enviar carta para o jogador
-          sendToPlayer(currentPlayer, {
-            type: 'UPDATE_PLAYER',
-            hand: currentPlayer.hand
-          });
+          // // Enviar carta para o jogador
+          // sendToPlayer(currentPlayer, {
+          //   type: 'UPDATE_PLAYER',
+          //   hand: currentPlayer.hand
+          // });
           
-          // Atualizar contagem para outros jogadores
-          broadcastToRoom(currentRoom, getRoomState(currentRoom), currentPlayer.id);
+          // // Atualizar contagem para outros jogadores
+          // broadcastToRoom(currentRoom, getRoomState(currentRoom), currentPlayer.id);
+
+          currentRoom.players.forEach(player => {
+            sendToPlayer(player, getRoomState(currentRoom!, player));
+          });
           break;
         }
 
@@ -722,7 +641,11 @@ wss.on('connection', (ws: WebSocket) => {
           }
           
           updatePlayerTurns(currentRoom);
-          broadcastToRoom(currentRoom, getRoomState(currentRoom));
+          // broadcastToRoom(currentRoom, getRoomState(currentRoom));
+
+          currentRoom.players.forEach(player => {
+            sendToPlayer(player, getRoomState(currentRoom!, player));
+          });
           break;
         }
 
@@ -744,11 +667,15 @@ wss.on('connection', (ws: WebSocket) => {
           
           currentPlayer.yelledUno = true;
           
-          broadcastToRoom(currentRoom, {
-            type: 'UPDATE_PLAYER',
-            playerId: currentPlayer.id,
-            yelledUno: true,
-            message: `${currentPlayer.name} gritou UNO!`
+          // broadcastToRoom(currentRoom, {
+          //   type: 'UPDATE_PLAYER',
+          //   playerId: currentPlayer.id,
+          //   yelledUno: true,
+          //   message: `${currentPlayer.name} gritou UNO!`
+          // });
+
+          currentRoom.players.forEach(player => {
+            sendToPlayer(player, getRoomState(currentRoom!, player));
           });
           break;
         }
@@ -775,18 +702,22 @@ wss.on('connection', (ws: WebSocket) => {
           // Penalizar jogador acusado
           accusedPlayer.hand.push(...dealCards(2));
           
-          // Enviar mão atualizada para o jogador acusado
-          if (accusedPlayer.ws && !accusedPlayer.disconnected) {
-            sendToPlayer(accusedPlayer, {
-              type: 'UPDATE_HAND',
-              hand: accusedPlayer.hand
-            });
-          }
+          // // Enviar mão atualizada para o jogador acusado
+          // if (accusedPlayer.ws && !accusedPlayer.disconnected) {
+          //   sendToPlayer(accusedPlayer, {
+          //     type: 'UPDATE_HAND',
+          //     hand: accusedPlayer.hand
+          //   });
+          // }
           
-          broadcastToRoom(currentRoom, {
-            type: 'UPDATE_ROOM',
-            message: `${accusedPlayer.name} foi penalizado por não gritar UNO!`,
-            room: getRoomState(currentRoom).room
+          // broadcastToRoom(currentRoom, {
+          //   type: 'UPDATE_ROOM',
+          //   message: `${accusedPlayer.name} foi penalizado por não gritar UNO!`,
+          //   room: getRoomState(currentRoom).room
+          // });
+
+          currentRoom.players.forEach(player => {
+            sendToPlayer(player, getRoomState(currentRoom!, player));
           });
           break;
         }

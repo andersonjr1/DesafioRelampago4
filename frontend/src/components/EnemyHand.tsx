@@ -106,7 +106,12 @@ const EnemyHand: React.FC<EnemyHandProps> = ({
 
   const content = (
     <HandContainer position={position} isCurrentPlayer={isCurrentPlayer}>
-      <EnemyProfile name={name} cardCount={cardCount} yelledUno={yelledUno} />
+      <EnemyProfile
+        name={name}
+        cardCount={cardCount}
+        yelledUno={yelledUno}
+        id={playerId}
+      />
     </HandContainer>
   );
 

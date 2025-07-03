@@ -53,13 +53,17 @@ function getPlayerOrder(playersArray: Player[], startPlayerId: string) {
 
 const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
-  const [openColorChoiceModal, setOpenColorChoiceModal] = React.useState(true);
+  const [openColorChoiceModal, setOpenColorChoiceModal] =
+    React.useState<boolean>(false);
   const { sendMessage, lastMessage, readyState } = useWebSocketContext();
   const { user } = useUserContext();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [playersOrder, setPlayersOrder] = React.useState<number[]>([]);
-  const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
   const [owner, setOwner] = React.useState<boolean>(false);
+  const [currentCard, setCurrentCard] = React.useState<Card>();
+  const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
+  const [playerHand, setPlayerHand] = React.useState<Card[]>([]);
+  console.log(openColorChoiceModal);
 
   // Console log user information when component mounts or user changes
   React.useEffect(() => {
@@ -82,45 +86,37 @@ const Room: React.FC = () => {
             setPlayersOrder(getPlayerOrder(data.room.players, user.id));
             setOwner(true);
             break;
-          case "JOIN_ROOM":
-            console.log("Player joined room:", data);
-            // Handle player joining room
-            break;
+          // case "JOIN_ROOM":
+          //   console.log("Player joined room:", data);
+          //   // Handle player joining room
+          //   break;
           case "DELETE_ROOM":
             console.log("Room deleted:", data);
             // Handle room deletion - maybe redirect to lobby
             break;
-          case "START_GAME":
-            console.log("Game started:", data);
-            // Handle game start - update UI to show game state
-            break;
-          case "UPDATE_HAND":
-            console.log("Hand updated:", data);
-            // Handle player hand updates
-            break;
+          // case "START_GAME":
+          //   console.log("Game started:", data);
+          //   // Handle game start - update UI to show game state
+          //   break;
           case "UPDATE_ROOM":
+            console.log("Room updated:", data);
             setPlayers(data.room.players);
             setPlayersOrder(getPlayerOrder(data.room.players, user.id));
-            break;
-          case "UPDATE_PLAYER":
-            console.log("Player updated:", data);
-            // Handle individual player updates
+            setCurrentPlayerId(data.room.currentPlayerId);
+            setCurrentCard(data.room.currentCard);
+            if (data.playerHand) {
+              setPlayerHand(data.playerHand);
+            }
+            if (
+              data.room.additionalState === "CHOOSING_COLOR" &&
+              data.room.currentPlayerId === user.id
+            ) {
+              setOpenColorChoiceModal(true);
+            }
             break;
           case "ERROR":
             console.error("Server error:", data);
             // Handle server errors - show error message to user
-            break;
-          case "GAME_STATE_UPDATE":
-            console.log("Game state updated:", data);
-            // Handle game state updates
-            break;
-          case "PLAYER_ACTION":
-            console.log("Player action:", data);
-            // Handle player actions
-            break;
-          case "CARD_PLAYED":
-            console.log("Card played:", data);
-            // Handle card played events
             break;
           default:
             console.log("Unknown message type:", data.type, data);
@@ -132,11 +128,17 @@ const Room: React.FC = () => {
     }
   }, [lastMessage]);
 
-  // const handleSkipTurn = () => {
-  //   if (readyState === ReadyState.OPEN) {
-  //     sendMessage(JSON.stringify({ type: "SKIP_TURN", roomCode: code }));
-  //   }
-  // };
+  const handleSkipTurn = () => {
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify({ type: "SKIP_ROUND", roomCode: code }));
+    }
+  };
+
+  const handleBuyCard = () => {
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify({ type: "BUY_CARD", roomCode: code }));
+    }
+  };
   console.log(playersOrder);
   return (
     <>
@@ -158,7 +160,7 @@ const Room: React.FC = () => {
               name={player.name || ""}
               cardCount={player.cardCount || 0}
               yelledUno={player.yelledUno || false}
-              hand={player.hand || []}
+              hand={playerHand}
               playerId={player.id || ""}
               currentPlayerId={currentPlayerId}
             />
@@ -177,28 +179,36 @@ const Room: React.FC = () => {
           />
         );
       })}
+      {currentCard && (
+        <>
+          <GameCenter
+            lastPlayedCard={currentCard}
+            onSkipTurn={handleSkipTurn}
+            onSelectCardBack={handleBuyCard}
+          />
+          <GameInformations gameDirection="clockwise" gameColor={currentCard} />
+          <ColorChoiceModal
+            open={openColorChoiceModal}
+            hand={playerHand}
+            onColorSelect={(color) => {
+              if (readyState === ReadyState.OPEN) {
+                sendMessage(
+                  JSON.stringify({
+                    type: "CHOOSE_COLOR",
+                    color,
+                  })
+                );
+              }
+              setOpenColorChoiceModal(!openColorChoiceModal);
+              console.log(color);
+            }}
+          />
+        </>
+      )}
 
       {/*
-      <GameCenter
-        lastPlayedCard={{ color: "red", value: "10" }}
-        onSkipTurn={handleSkipTurn}
-      />
-      <GameInformations
-        gameDirection="clockwise"
-        gameColor={{
-          color: "red",
-          value: "10",
-        }}
-      />
 
-      <ColorChoiceModal
-        open={openColorChoiceModal}
-        hand={handUser}
-        onColorSelect={(color) => {
-          setOpenColorChoiceModal(!openColorChoiceModal);
-          console.log(color);
-        }}
-      /> */}
+       */}
     </>
   );
 };

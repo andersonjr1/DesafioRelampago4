@@ -14,6 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useNavigate } from "react-router-dom";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 const RoomCodeContainer = styled(Box)(({ theme }) => ({
   // Fundo sutilmente acinzentado para destacar o container do fundo branco da página
@@ -94,6 +95,7 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
   owner,
 }) => {
   const navigate = useNavigate();
+  const { sendMessage } = useWebSocketContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [copySuccess, setCopySuccess] = React.useState(false);
 
@@ -112,26 +114,23 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
   };
 
   const handleStart = () => {
-    // Logic to start the game
+    // Send START_GAME WebSocket message
     console.log(`Starting game for room: ${roomCode}`);
-    // Here you would send a WebSocket message to start the game
-    // Example: sendMessage(JSON.stringify({ type: "START_GAME", roomCode }));
+    sendMessage(JSON.stringify({ type: "START_GAME" }));
   };
 
   const handleDisconnect = () => {
-    // Logic to disconnect from the room
+    // Send DISCONNECT WebSocket message
     console.log(`Disconnecting from room: ${roomCode}`);
-    // Here you would send a WebSocket message to leave the room
-    // Example: sendMessage(JSON.stringify({ type: "LEAVE_ROOM", roomCode }));
+    sendMessage(JSON.stringify({ type: "DISCONNECT" }));
     navigate("/lobby");
   };
 
   const confirmDeleteRoom = () => {
-    // Aqui você implementaria a lógica real de deletar a sala
-    // Por exemplo, fazer uma chamada para a API
+    // Send DELETE_ROOM WebSocket message
     console.log(`Deletando sala com código: ${roomCode}`);
+    sendMessage(JSON.stringify({ type: "DELETE_ROOM" }));
 
-    // Simular deleção e redirecionar para o lobby
     setDeleteDialogOpen(false);
     navigate("/lobby");
   };

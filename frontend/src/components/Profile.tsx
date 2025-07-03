@@ -15,6 +15,7 @@ import { styled, keyframes } from "@mui/material/styles";
 import StyleIcon from "@mui/icons-material/Style";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CampaignIcon from "@mui/icons-material/Campaign";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 // --- Interfaces ---
 interface MyProfileProps {
@@ -96,8 +97,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
   cardCount,
   yelledUno,
 }) => {
+  const { sendMessage } = useWebSocketContext();
   const handleYellUno = () => {
-    console.log(`${name} gritou UNO!`);
+    sendMessage(JSON.stringify({ type: "YELL_UNO" }));
   };
 
   // Lógica de status adaptada para o perfil do jogador

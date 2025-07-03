@@ -15,6 +15,7 @@ interface GameCenterProps {
     value: string;
   };
   onSkipTurn?: () => void; // Prop opcional para o botão "Passar vez"
+  onSelectCardBack?: () => void;
 }
 
 // --- Styled Components Modificados ---
@@ -72,12 +73,20 @@ const SkipTurnButton = styled(Button)(({ theme }) => ({
 }));
 
 // --- Componente Principal ---
-const GameCenter: React.FC<GameCenterProps> = ({ lastPlayedCard, onSkipTurn }) => {
+const GameCenter: React.FC<GameCenterProps> = ({
+  lastPlayedCard,
+  onSkipTurn,
+  onSelectCardBack,
+}) => {
   return (
     <CenterContainer>
       {/* Carta do baralho (UnoCardBack) à esquerda */}
       <DeckWrapper>
-        <UnoCardBack />
+        <UnoCardBack
+          onSelect={
+            onSelectCardBack || (() => console.log("Passar vez clicado"))
+          }
+        />
       </DeckWrapper>
 
       {/* Última carta jogada (UnoCardFront) à direita */}
@@ -91,7 +100,7 @@ const GameCenter: React.FC<GameCenterProps> = ({ lastPlayedCard, onSkipTurn }) =
       {/* Botão "Passar vez" - agora sempre aparece */}
       <SkipTurnButton
         variant="contained"
-        onClick={onSkipTurn || (() => console.log('Passar vez clicado'))}
+        onClick={onSkipTurn || (() => console.log("Passar vez clicado"))}
       >
         Passar vez
       </SkipTurnButton>
