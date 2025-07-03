@@ -7,6 +7,8 @@ import EnemyHand from "../components/EnemyHand";
 import GameCenter from "../components/GameCenter";
 import GameInformations from "../components/GameInformations";
 import ColorChoiceModal from "../components/ColorChoiceModal";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
+import { ReadyState } from "react-use-websocket";
 
 const handUser = [
   {
@@ -50,6 +52,43 @@ const handUser = [
 const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const [openColorChoiceModal, setOpenColorChoiceModal] = React.useState(true);
+  const { sendMessage, lastMessage, readyState } = useWebSocketContext();
+
+  // Handle incoming messages specific to the room
+  React.useEffect(() => {
+    if (lastMessage !== null) {
+      try {
+        const data = JSON.parse(lastMessage.data);
+        
+        switch (data.type) {
+          case "GAME_STATE_UPDATE":
+            console.log("Game state updated:", data);
+            // Handle game state updates
+            break;
+          case "PLAYER_ACTION":
+            console.log("Player action:", data);
+            // Handle player actions
+            break;
+          case "CARD_PLAYED":
+            console.log("Card played:", data);
+            // Handle card played events
+            break;
+          default:
+            // Let other components handle other message types
+            break;
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message in Room:", error);
+      }
+    }
+  }, [lastMessage]);
+
+  const handleSkipTurn = () => {
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify({ type: "SKIP_TURN", roomCode: code }));
+    }
+  };
+
   return (
     <>
       <Box
@@ -99,7 +138,10 @@ const Room: React.FC = () => {
         playerId="1"
         currentPlayerId="2"
       />
-      <GameCenter lastPlayedCard={{ color: "red", value: "10" }} />
+      <GameCenter 
+        lastPlayedCard={{ color: "red", value: "10" }} 
+        onSkipTurn={handleSkipTurn}
+      />
       <GameInformations
         gameDirection="clockwise"
         gameColor={{

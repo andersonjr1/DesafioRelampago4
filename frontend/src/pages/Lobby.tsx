@@ -4,9 +4,8 @@ import { styled } from "@mui/material/styles";
 import CreateRoom from "../components/CreateRoom";
 import JoinRoom from "../components/JoinRoom";
 import { useNavigate } from "react-router-dom";
-import io from "socket.io-client";
-import { type Socket } from "socket.io-client";
-import { SOCKET_URL } from "../utils/constants";
+import { ReadyState } from "react-use-websocket";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -18,45 +17,49 @@ const StyledHeader = styled(Paper)(({ theme }) => ({
 }));
 
 const Lobby: React.FC = () => {
-  const [socket, setSocket] = React.useState<Socket | null>(null);
   const [errorJoin, setErrorJoin] = React.useState("");
-
   const navigate = useNavigate();
+  const { sendMessage, lastMessage, readyState, connectionStatus } =
+    useWebSocketContext();
 
+  // Handle incoming messages
   React.useEffect(() => {
-    const newSocket = io(SOCKET_URL);
+    if (lastMessage !== null) {
+      try {
+        const data = JSON.parse(lastMessage.data);
 
-    setSocket(newSocket);
-
-    newSocket.on("connect", () => {
-      console.log("Connected to Socket.IO server");
-    });
-
-    newSocket.on("ROOM_CREATED", (data) => {
-      console.log(data);
-      navigate(`/room/${data.roomId}`);
-    });
-
-    newSocket.on("ROOM_JOINED", (data) => {
-      console.log(data);
-      if (!data.success) {
-        setErrorJoin(data.message);
-        return;
+        switch (data.type) {
+          case "CREATE_ROOM":
+            console.log(data);
+            navigate(`/room/${data.room.id}`);
+            break;
+          case "JOIN_ROOM":
+            console.log(data);
+            if (!data.success) {
+              setErrorJoin(data.message);
+              return;
+            }
+            navigate(`/room/${data.room.id}`);
+            break;
+          default:
+            console.log("Unknown message type:", data);
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
       }
-      navigate(`/room/${data.roomId}`);
-    });
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, []);
+    }
+  }, [lastMessage, navigate]);
 
   const handleCreateRoom = (roomName: string) => {
-    socket?.emit("CREATE_ROOM", { roomName });
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify({ type: "CREATE_ROOM", roomName }));
+    }
   };
 
-  const handleJoinRoom = (roomCode: string) => {
-    socket?.emit("JOIN_ROOM", { roomCode });
+  const handleJoinRoom = (roomId: string) => {
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify({ type: "JOIN_ROOM", roomId }));
+    }
   };
 
   return (
@@ -73,6 +76,9 @@ const Lobby: React.FC = () => {
         </Typography>
         <Typography variant="h5" sx={{ opacity: 0.9 }}>
           Crie uma nova sala ou entre em uma sala existente
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 1, opacity: 0.7 }}>
+          Connection Status: {connectionStatus}
         </Typography>
       </StyledHeader>
 

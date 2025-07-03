@@ -239,6 +239,22 @@ function generateId(): string {
   return uuidv4();
 }
 
+function gerarPlayerName() {
+  // Listas de palavras que farão parte do nome
+  const adjetivos = ["Rapido", "Sombrio", "Furtivo", "Lendario", "Brutal", "Mistico", "Dourado", "Gelido", "Insano"];
+  const substantivos = ["Lobo", "Dragao", "Fantasma", "Cacador", "Mago", "Guerreiro", "Tigre", "Corvo", "Executor"];
+
+  // Escolhe uma palavra aleatória de cada lista
+  const adjetivoAleatorio = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+  const substantivoAleatorio = substantivos[Math.floor(Math.random() * substantivos.length)];
+
+  // Gera um número aleatório (ex: entre 10 e 99) para dar um toque final
+  const numeroAleatorio = Math.floor(Math.random() * 90) + 10;
+
+  // Junta tudo para formar o nome final
+  return `${adjetivoAleatorio}${substantivoAleatorio}${numeroAleatorio}`;
+}
+
 function getRandomCard(): Card {
   return unoCards[Math.floor(Math.random() * unoCards.length)];
 }
@@ -354,9 +370,10 @@ wss.on('connection', (ws: WebSocket) => {
 
       switch (type as MessageType) {
         case 'CREATE_ROOM': {
-          const { roomId, roomName, playerName } = payload;
-          
-          if (!roomId || !roomName || !playerName) {
+          const { roomName } = payload;
+          const roomId = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+          const playerName = gerarPlayerName()
+          if (!roomId || !roomName) {
             ws.send(JSON.stringify({ type: 'ERROR', message: 'ID da sala, nome da sala e do jogador são obrigatórios' }));
             return;
           }
@@ -403,10 +420,10 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         case 'JOIN_ROOM': {
-          const { roomId, playerName } = payload;
+          const { roomId } = payload;
           
-          if (!roomId || !playerName) {
-            ws.send(JSON.stringify({ type: 'ERROR', message: 'ID da sala e nome do jogador são obrigatórios' }));
+          if (!roomId) {
+            ws.send(JSON.stringify({ type: 'ERROR', message: 'ID da sala é obrigatorio' }));
             return;
           }
           
@@ -426,6 +443,7 @@ wss.on('connection', (ws: WebSocket) => {
             return;
           }
           
+          const playerName = gerarPlayerName()
           const playerId = generateId();
           const player: Player = {
             id: playerId,
@@ -442,7 +460,7 @@ wss.on('connection', (ws: WebSocket) => {
           ws.send(JSON.stringify({
             type: 'JOIN_ROOM',
             success: true,
-            playerId
+            room
           }));
           
           broadcastToRoom(room, getRoomState(room));
