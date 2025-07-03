@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useNavigate } from "react-router-dom";
@@ -30,32 +29,6 @@ const RoomCodeContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
 }));
 
-const CodeText = styled(Typography)(({ theme }) => ({
-  // Cor de texto escura para legibilidade
-  color: theme.palette.text.primary,
-  fontWeight: "bold",
-  letterSpacing: "4px",
-  fontFamily: "monospace",
-  fontSize: "1.7rem",
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "1.5rem",
-    letterSpacing: "2px",
-  },
-}));
-
-const ActionButton = styled(Button)(({ theme }) => ({
-  // Cor do texto do botão usando a cor primária do tema (geralmente azul ou roxo)
-  color: theme.palette.primary.main,
-  // Cor da borda correspondente
-  borderColor: theme.palette.primary.main,
-  "&:hover": {
-    // Escurece a borda no hover
-    borderColor: theme.palette.primary.dark,
-    // Adiciona um fundo sutil no hover para feedback
-    backgroundColor: "rgba(0, 0, 0, 0.04)",
-  },
-}));
-
 const DeleteButton = styled(Button)(({ theme }) => ({
   // Cor do texto do botão de exclusão usando a paleta de erro do tema
   color: theme.palette.error.main,
@@ -66,6 +39,30 @@ const DeleteButton = styled(Button)(({ theme }) => ({
     borderColor: theme.palette.error.dark,
     // Adiciona um fundo sutil com a cor de erro no hover
     backgroundColor: "rgba(211, 47, 47, 0.04)", // Cor de erro do MUI com baixa opacidade
+  },
+}));
+
+const CodeText = styled(Typography)(({ theme }) => ({
+  // Cor de texto escura para legibilidade
+  color: theme.palette.text.primary,
+  fontWeight: "bold",
+  letterSpacing: "4px",
+  fontFamily: "monospace",
+  fontSize: "1.7rem",
+  cursor: "pointer",
+  padding: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    backgroundColor: theme.palette.action.hover,
+    transform: "scale(1.02)",
+  },
+  "&:active": {
+    transform: "scale(0.98)",
+  },
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "1.5rem",
+    letterSpacing: "2px",
   },
 }));
 
@@ -146,7 +143,9 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
   return (
     <>
       <RoomCodeContainer>
-        <CodeText>{roomCode.toUpperCase()}</CodeText>
+        <CodeText onClick={handleCopyCode} title="Clique para copiar o código">
+          {copySuccess ? "COPIADO!" : roomCode.toUpperCase()}
+        </CodeText>
 
         <Box
           sx={{
@@ -156,15 +155,6 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
             justifyContent: "center",
           }}
         >
-          <ActionButton
-            variant="outlined"
-            size="small"
-            startIcon={<ContentCopyIcon />}
-            onClick={handleCopyCode}
-          >
-            {copySuccess ? "Copiado!" : "Copiar Código"}
-          </ActionButton>
-
           {owner && (
             <StartButton
               variant="outlined"
