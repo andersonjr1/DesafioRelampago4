@@ -1,8 +1,12 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import UnoCardFront from "./UnoCardFront"; // Seus componentes de carta
 import UnoCardBack from "./UnoCardBack";
+
+// --- Types ---
+type UnoColor = "red" | "yellow" | "green" | "blue" | "black";
+type UnoValue = string | number;
 
 // --- Interfaces ---
 interface GameCenterProps {
@@ -10,6 +14,8 @@ interface GameCenterProps {
     color: string;
     value: string;
   };
+  onSkipTurn?: () => void; // Prop opcional para o botão "Passar vez"
+  onSelectCardBack?: () => void;
 }
 
 // --- Styled Components Modificados ---
@@ -46,22 +52,58 @@ const DiscardPileWrapper = styled(Box)({
   },
 });
 
+// Styled component para o botão "Passar vez"
+const SkipTurnButton = styled(Button)(({ theme }) => ({
+  position: "absolute",
+  bottom: "-80px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  backgroundColor: theme.palette.warning.main,
+  color: theme.palette.warning.contrastText,
+  fontWeight: "bold",
+  padding: theme.spacing(0.5, 2), // Reduzido de (1, 3) para (0.5, 2)
+  borderRadius: theme.spacing(2), // Reduzido de 3 para 2
+  fontSize: "0.8rem", // Adicionado para reduzir o tamanho da fonte
+  minWidth: "auto", // Remove largura mínima padrão
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    backgroundColor: theme.palette.warning.dark,
+    transform: "translateX(-50%) scale(1.05)",
+  },
+}));
+
 // --- Componente Principal ---
-const GameCenter: React.FC<GameCenterProps> = ({ lastPlayedCard }) => {
+const GameCenter: React.FC<GameCenterProps> = ({
+  lastPlayedCard,
+  onSkipTurn,
+  onSelectCardBack,
+}) => {
   return (
     <CenterContainer>
       {/* Carta do baralho (UnoCardBack) à esquerda */}
       <DeckWrapper>
-        <UnoCardBack />
+        <UnoCardBack
+          onSelect={
+            onSelectCardBack || (() => console.log("Passar vez clicado"))
+          }
+        />
       </DeckWrapper>
 
       {/* Última carta jogada (UnoCardFront) à direita */}
       <DiscardPileWrapper>
         <UnoCardFront
-          color={lastPlayedCard.color as any}
-          value={lastPlayedCard.value as any}
+          color={lastPlayedCard.color as UnoColor}
+          value={lastPlayedCard.value as UnoValue}
         />
       </DiscardPileWrapper>
+
+      {/* Botão "Passar vez" - agora sempre aparece */}
+      <SkipTurnButton
+        variant="contained"
+        onClick={onSkipTurn || (() => console.log("Passar vez clicado"))}
+      >
+        Passar vez
+      </SkipTurnButton>
     </CenterContainer>
   );
 };

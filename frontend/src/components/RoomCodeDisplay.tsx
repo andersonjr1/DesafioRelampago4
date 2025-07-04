@@ -11,8 +11,10 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useNavigate } from "react-router-dom";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 const RoomCodeContainer = styled(Box)(({ theme }) => ({
   // Fundo sutilmente acinzentado para destacar o container do fundo branco da página
@@ -28,32 +30,6 @@ const RoomCodeContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
 }));
 
-const CodeText = styled(Typography)(({ theme }) => ({
-  // Cor de texto escura para legibilidade
-  color: theme.palette.text.primary,
-  fontWeight: "bold",
-  letterSpacing: "4px",
-  fontFamily: "monospace",
-  fontSize: "1.7rem",
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "1.5rem",
-    letterSpacing: "2px",
-  },
-}));
-
-const ActionButton = styled(Button)(({ theme }) => ({
-  // Cor do texto do botão usando a cor primária do tema (geralmente azul ou roxo)
-  color: theme.palette.primary.main,
-  // Cor da borda correspondente
-  borderColor: theme.palette.primary.main,
-  "&:hover": {
-    // Escurece a borda no hover
-    borderColor: theme.palette.primary.dark,
-    // Adiciona um fundo sutil no hover para feedback
-    backgroundColor: "rgba(0, 0, 0, 0.04)",
-  },
-}));
-
 const DeleteButton = styled(Button)(({ theme }) => ({
   // Cor do texto do botão de exclusão usando a paleta de erro do tema
   color: theme.palette.error.main,
@@ -67,12 +43,59 @@ const DeleteButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+const CodeText = styled(Typography)(({ theme }) => ({
+  // Cor de texto escura para legibilidade
+  color: theme.palette.text.primary,
+  fontWeight: "bold",
+  letterSpacing: "4px",
+  fontFamily: "monospace",
+  fontSize: "1.7rem",
+  cursor: "pointer",
+  padding: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    backgroundColor: theme.palette.action.hover,
+    transform: "scale(1.02)",
+  },
+  "&:active": {
+    transform: "scale(0.98)",
+  },
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "1.5rem",
+    letterSpacing: "2px",
+  },
+}));
+
+const StartButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.success.main,
+  borderColor: theme.palette.success.main,
+  "&:hover": {
+    borderColor: theme.palette.success.dark,
+    backgroundColor: "rgba(76, 175, 80, 0.04)",
+  },
+}));
+
+const DisconnectButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.warning.main,
+  borderColor: theme.palette.warning.main,
+  "&:hover": {
+    borderColor: theme.palette.warning.dark,
+    backgroundColor: "rgba(255, 152, 0, 0.04)",
+  },
+}));
+
 interface RoomCodeDisplayProps {
   roomCode: string;
+  owner: boolean;
 }
 
-const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
+const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
+  roomCode,
+  owner,
+}) => {
   const navigate = useNavigate();
+  const { sendMessage } = useWebSocketContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [copySuccess, setCopySuccess] = React.useState(false);
 
@@ -86,16 +109,28 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
     }
   };
 
-  const handleDeleteRoom = () => {
+  const handleDelete = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDeleteRoom = () => {
-    // Aqui você implementaria a lógica real de deletar a sala
-    // Por exemplo, fazer uma chamada para a API
-    console.log(`Deletando sala com código: ${roomCode}`);
+  const handleStart = () => {
+    // Send START_GAME WebSocket message
+    console.log(`Starting game for room: ${roomCode}`);
+    sendMessage(JSON.stringify({ type: "START_GAME" }));
+  };
 
-    // Simular deleção e redirecionar para o lobby
+  const handleDisconnect = () => {
+    // Send DISCONNECT WebSocket message
+    console.log(`Disconnecting from room: ${roomCode}`);
+    sendMessage(JSON.stringify({ type: "DISCONNECT" }));
+    navigate("/lobby");
+  };
+
+  const confirmDeleteRoom = () => {
+    // Send DELETE_ROOM WebSocket message
+    console.log(`Deletando sala com código: ${roomCode}`);
+    sendMessage(JSON.stringify({ type: "DELETE_ROOM" }));
+
     setDeleteDialogOpen(false);
     navigate("/lobby");
   };
@@ -107,7 +142,9 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
   return (
     <>
       <RoomCodeContainer>
-        <CodeText>{roomCode.toUpperCase()}</CodeText>
+        <CodeText onClick={handleCopyCode} title="Clique para copiar o código">
+          {copySuccess ? "COPIADO!" : roomCode.toUpperCase()}
+        </CodeText>
 
         <Box
           sx={{
@@ -117,23 +154,38 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({ roomCode }) => {
             justifyContent: "center",
           }}
         >
-          <ActionButton
-            variant="outlined"
-            size="small"
-            startIcon={<ContentCopyIcon />}
-            onClick={handleCopyCode}
-          >
-            {copySuccess ? "Copiado!" : "Copiar Código"}
-          </ActionButton>
+          {owner && (
+            <StartButton
+              variant="outlined"
+              size="small"
+              startIcon={<PlayArrowIcon />}
+              onClick={handleStart}
+            >
+              Iniciar Jogo
+            </StartButton>
+          )}
 
-          <DeleteButton
-            variant="outlined"
-            size="small"
-            startIcon={<DeleteIcon />}
-            onClick={handleDeleteRoom}
-          >
-            Deletar Sala
-          </DeleteButton>
+          {!owner && (
+            <DisconnectButton
+              variant="outlined"
+              size="small"
+              startIcon={<ExitToAppIcon />}
+              onClick={handleDisconnect}
+            >
+              Desconectar
+            </DisconnectButton>
+          )}
+
+          {owner && (
+            <DeleteButton
+              variant="outlined"
+              size="small"
+              startIcon={<DeleteIcon />}
+              onClick={handleDelete}
+            >
+              Deletar Sala
+            </DeleteButton>
+          )}
         </Box>
       </RoomCodeContainer>
 

@@ -9,7 +9,7 @@ interface EnemyHandProps {
   cardCount: number;
   yelledUno: boolean;
   disconnected: boolean;
-  position: 2 | 3 | 4;
+  position: number;
   playerId: string;
   currentPlayerId: string;
 }
@@ -36,7 +36,7 @@ const HandContainer = styled(Box)<{
   };
 
   switch (position) {
-    case 2: // Topo
+    case 3: // Topo
       return {
         ...baseStyles,
         position: "fixed" as const,
@@ -45,7 +45,7 @@ const HandContainer = styled(Box)<{
         transform: "translateX(-50%)",
         zIndex: 100,
       };
-    case 3: // Esquerda vertical
+    case 2: // Esquerda vertical
       return {
         ...baseStyles,
         position: "fixed" as const,
@@ -106,7 +106,12 @@ const EnemyHand: React.FC<EnemyHandProps> = ({
 
   const content = (
     <HandContainer position={position} isCurrentPlayer={isCurrentPlayer}>
-      <EnemyProfile name={name} cardCount={cardCount} yelledUno={yelledUno} />
+      <EnemyProfile
+        name={name}
+        cardCount={cardCount}
+        yelledUno={yelledUno}
+        id={playerId}
+      />
     </HandContainer>
   );
 

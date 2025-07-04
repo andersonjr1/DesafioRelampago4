@@ -1,24 +1,26 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Lobby from './pages/Lobby';
-import Room from './pages/Room';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Lobby from "./pages/Lobby";
+import Room from "./pages/Room";
+import "./App.css";
+import { WebSocketProvider } from "./contexts/WebSocketContext";
+import { UserProvider } from "./contexts/UserContext";
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: "#1976d2",
     },
     secondary: {
-      main: '#dc004e',
+      main: "#dc004e",
     },
     background: {
-      default: '#f5f5f5',
+      default: "#f5f5f5",
     },
   },
   typography: {
@@ -28,18 +30,22 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/lobby" element={<Lobby />} />
-          <Route path="/room/:code" element={<Room />} />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <UserProvider>
+      <WebSocketProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/lobby" element={<Lobby />} />
+              <Route path="/room/:code" element={<Room />} />
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </WebSocketProvider>
+    </UserProvider>
   );
 }
 
