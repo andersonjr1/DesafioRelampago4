@@ -1,47 +1,50 @@
-import {
-  getRoomServer,
-  setRoomServer,
-  getAvailableGameServer,
-} from "../repository/lobbyRepository";
 import { randomUUID } from "crypto";
-import { config } from "../config";
+import { Room } from "../interfaces/index";
 
-const getGameServerUrl = (serverId: string, roomId: string): string => {
-  const protocol = process.env.NODE_ENV === "production" ? "wss" : "ws";
-  return `${protocol}://${config.DOMAIN}/ws/game/${serverId}/${roomId}`;
-};
+const rooms: Map<string, Room> = new Map();
 
-const createRoom = async (): Promise<{
-  roomId: string;
-  serverUrl: string;
-} | null> => {
+const createRoom = async (
+  roomName: string,
+  ownerId: string,
+  ownerName: string
+): Promise<{ roomId: string } | string> => {
   try {
-    const serverId = await getAvailableGameServer();
-    if (!serverId) return null;
+    for (const room of rooms.values()) {
+      if (room.roomName === roomName && room.status !== "FINISHED") {
+        return "Já existe uma sala ativa com este nome";
+      }
+    }
+
+    for (const room of rooms.values()) {
+      if (room.ownerId === ownerId && room.status !== "FINISHED") {
+        return "Você já criou uma sala ativa.";
+      }
+    }
 
     const roomId = randomUUID();
-    const gameServerUrl = getGameServerUrl(serverId, roomId);
 
-    await setRoomServer(roomId, serverId);
+    const room: Room = {
+      id: roomId,
+      ownerId,
+      roomName,
+      canStart: false,
+      status: "WAITING",
+      additionalState: null,
+      players: [
+        {
+          id: ownerId,
+          name: ownerName,
+          disconnected: false,
+        },
+      ],
+    };
 
-    return { roomId, serverUrl: gameServerUrl };
+    rooms.set(roomId, room);
+
+    return { roomId };
   } catch (error) {
     throw error;
   }
 };
 
-const joinRoom = async (
-  roomId: string
-): Promise<{ serverUrl: string } | null> => {
-  try {
-    const serverId = await getRoomServer(roomId);
-    if (!serverId) return null;
-
-    const gameServerUrl = getGameServerUrl(serverId, roomId);
-    return { serverUrl: gameServerUrl };
-  } catch (error) {
-    throw error;
-  }
-};
-
-export { createRoom, joinRoom };
+export { createRoom, rooms };

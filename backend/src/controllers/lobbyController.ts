@@ -1,41 +1,33 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../interfaces/index";
 import * as lobbyServices from "../services/lobbyServices";
 
-const createRoom = async (req: Request, res: Response) => {
+const createRoom = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await lobbyServices.createRoom();
-    if (!result) {
-      res
-        .status(503)
-        .json({ error: "Nenhum servidor de jogo disponível no momento" });
+    const { roomName } = req.body;
+    const user = req.user;
+
+    if (!roomName) {
+      res.status(400).json({ error: "Nome da sala é obrigatório" });
       return;
     }
+
+    const result = await lobbyServices.createRoom(
+      roomName,
+      user?.userId,
+      user?.name
+    );
+
+    if (typeof result === "string") {
+      res.status(400).json({ error: result });
+      return;
+    }
+
     res.status(201).json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao criar sala" });
+    res.status(500).json({ error: "Erro interno do servidor ao criar sala" });
   }
 };
 
-const enterRoom = async (req: Request, res: Response) => {
-  const { roomId } = req.body;
-
-  if (!roomId) {
-    res.status(400).json({ error: "Id da sala é obrigatório" });
-    return;
-  }
-
-  try {
-    const result = await lobbyServices.joinRoom(roomId);
-    if (!result) {
-      res.status(404).json({ error: "Sala não encontrada" });
-      return;
-    }
-    res.json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao entrar na sala" });
-  }
-};
-
-export { createRoom, enterRoom };
+export { createRoom };

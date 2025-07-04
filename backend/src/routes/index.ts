@@ -11,7 +11,6 @@ router.post("/auth/register", usersController.register);
 router.post("/auth/login", authController.login);
 router.post("/auth/logout", authenticateToken, authController.logout);
 router.get("/session", authenticateToken, authController.checkLogin);
-router.post("/lobby/rooms", lobbyController.createRoom);
-router.post("/lobby/rooms/join", lobbyController.enterRoom);
+router.post("/lobby/rooms", authenticateToken, lobbyController.createRoom);
 
 export { router };
