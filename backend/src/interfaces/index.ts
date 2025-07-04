@@ -19,4 +19,43 @@ interface User {
   password: string;
 }
 
-export { User, ApiResponse, AuthRequest };
+type GameStatus = "WAITING" | "IN_GAME" | "FINISHED";
+
+type GameDirection = "clockwise" | "counter-clockwise";
+
+type AdditionalState = "CHOOSING_COLOR" | "PLAYER_DISCONNECTED" | null;
+
+interface Card {
+  color: string;
+  value: string;
+  chosenColor?: string;
+}
+
+interface Player {
+  id: string;
+  ws?: WebSocket;
+  name: string;
+  cardCount?: number;
+  alreadyBought?: boolean;
+  isTheirTurn?: boolean;
+  disconnected?: boolean;
+  yelledUno?: boolean;
+  hand?: Card[];
+}
+
+interface Room {
+  id: string;
+  ownerId: string;
+  roomName: string;
+  canStart: boolean;
+
+  status?: GameStatus;
+  currentCard?: Card;
+  gameDirection?: GameDirection;
+  currentPlayerId?: string;
+  additionalState?: AdditionalState;
+
+  players: Player[];
+}
+
+export { User, ApiResponse, AuthRequest, Room };

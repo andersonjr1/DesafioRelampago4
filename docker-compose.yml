@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: backend
     build:
       context: ./backend
     ports:
@@ -8,11 +9,13 @@ services:
       - ./backend/.env
     depends_on:
       - db
-      - redis
     volumes:
       - ./backend:/app
+    networks:
+      - game-network
 
   db:
+    container_name: db
     image: postgres:15
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -23,11 +26,12 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
+    networks:
+      - game-network
 
 volumes:
   db_data:
+
+networks:
+  game-network:
+    driver: bridge
