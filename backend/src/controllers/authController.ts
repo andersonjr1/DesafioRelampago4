@@ -48,7 +48,7 @@ const checkLogin = (req: AuthRequest, res: Response) => {
     return;
   }
 
-  res.json({
+  res.status(200).json({
     id: req.user.userId,
     name: req.user.name,
   });
