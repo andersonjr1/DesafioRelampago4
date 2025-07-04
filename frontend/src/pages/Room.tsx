@@ -10,6 +10,7 @@ import ColorChoiceModal from "../components/ColorChoiceModal";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
 import { ReadyState } from "react-use-websocket";
+import Winner from "../components/Winner";
 
 interface Card {
   color: string;
@@ -63,6 +64,8 @@ const Room: React.FC = () => {
   const [currentCard, setCurrentCard] = React.useState<Card>();
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
   const [playerHand, setPlayerHand] = React.useState<Card[]>([]);
+  const [winnerName, setWinnerName] = React.useState<string>("");
+  const [showWinner, setShowWinner] = React.useState<boolean>(false);
   console.log(openColorChoiceModal);
 
   // Console log user information when component mounts or user changes
@@ -112,6 +115,10 @@ const Room: React.FC = () => {
               data.room.currentPlayerId === user.id
             ) {
               setOpenColorChoiceModal(true);
+            }
+            if (data.winner) {
+              setWinnerName(data.room.name);
+              setShowWinner(true);
             }
             break;
           case "ERROR":
@@ -206,9 +213,11 @@ const Room: React.FC = () => {
         </>
       )}
 
-      {/*
-
-       */}
+      <Winner
+        winnerName={winnerName}
+        open={showWinner}
+        onClose={() => setShowWinner(false)}
+      />
     </>
   );
 };
