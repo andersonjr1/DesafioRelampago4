@@ -5,7 +5,7 @@ import { ArrowCircleRight, ArrowCircleLeft } from "@mui/icons-material";
 
 // --- Interfaces ---
 interface GameDirectionProps {
-  gameDirection: "clockwise" | "anticlockwise";
+  gameDirection: string;
 }
 
 // --- Styled Components ---

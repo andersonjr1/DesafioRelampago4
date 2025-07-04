@@ -6,7 +6,7 @@ import GameColor from "./GameColor";
 
 // --- Interfaces ---
 interface GameInformationsProps {
-  gameDirection: "clockwise" | "anticlockwise";
+  gameDirection: string;
   gameColor: {
     color: string;
     value: string;
