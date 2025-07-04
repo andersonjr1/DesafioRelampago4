@@ -17,7 +17,7 @@ const authenticateUser = async (
     if (!valid) return { success: false, error: "Credenciais inválidas" };
 
     const token = jwt.sign(
-      { userId: user.id, name: user.name },
+      { id: user.id, name: user.name, email: user.email },
       config.SECRET_KEY,
       { expiresIn: "24h" }
     );

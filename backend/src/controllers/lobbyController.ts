@@ -14,7 +14,7 @@ const createRoom = async (req: AuthRequest, res: Response) => {
 
     const result = await lobbyServices.createRoom(
       roomName,
-      user?.userId,
+      user?.id,
       user?.name
     );
 

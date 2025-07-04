@@ -20,7 +20,9 @@ const login = async (req: Request, res: Response) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: "Autenticado com sucesso" });
+    res
+      .status(200)
+      .json({ message: "Autenticado com sucesso", data: result.data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro interno do servidor" });
@@ -49,8 +51,7 @@ const checkLogin = (req: AuthRequest, res: Response) => {
   }
 
   res.status(200).json({
-    id: req.user.userId,
-    name: req.user.name,
+    data: req.user,
   });
 };
 
