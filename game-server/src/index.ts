@@ -699,7 +699,6 @@ wss.on('connection', (ws: WebSocket) => {
             return;
           }
           
-          // Penalizar jogador acusado
           accusedPlayer.hand.push(...dealCards(2));
           
           // // Enviar mão atualizada para o jogador acusado
