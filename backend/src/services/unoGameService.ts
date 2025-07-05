@@ -684,7 +684,9 @@ function createRoomForApi(playerId: string, playerName: string, roomName: string
   if (isPlayerInAnyRoom(playerId)) {
     throw new Error("Você já está em uma sala.");
   }
-  
+  console.log(roomName, playerId, playerName)
+
+
   const roomId = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
   const room: UnoRoom = {
     id: roomId,
@@ -752,7 +754,7 @@ export function initializeUnoGameService(wss: WebSocketServer): void {
   wss.on("connection", (ws: UnoWebSocket, request: any) => {
     // Extract player info from query parameters or headers
     const url = new URL(request.url!, `http://${request.headers.host}`);
-    const roomId = url.searchParams.get('roomId') || '';
+    const roomId = url.pathname.split('/').pop() || '';
 
     ws.currentRoomId = roomId;
     

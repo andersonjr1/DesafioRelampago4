@@ -4,8 +4,6 @@ import { styled } from "@mui/material/styles";
 import CreateRoom from "../components/CreateRoom";
 import JoinRoom from "../components/JoinRoom";
 import { useNavigate } from "react-router-dom";
-import { ReadyState } from "react-use-websocket";
-import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
 import LogoutIcon from "@mui/icons-material/Logout";
 
@@ -20,49 +18,42 @@ const StyledHeader = styled(Paper)(({ theme }) => ({
 
 const Lobby: React.FC = () => {
   const [errorJoin, setErrorJoin] = React.useState("");
+  const [errorCreate, setErrorCreate] = React.useState("");
   const navigate = useNavigate();
-  const { sendMessage, lastMessage, readyState, connectionStatus } =
-    useWebSocketContext();
-  const { updateUserFromWebSocket, clearUser } = useUserContext();
+  const { clearUser } = useUserContext();
 
-  // Handle incoming messages
-  React.useEffect(() => {
-    if (lastMessage !== null) {
-      try {
-        const data = JSON.parse(lastMessage.data);
-
-        switch (data.type) {
-          case "CREATE_ROOM":
-            updateUserFromWebSocket(data);
-            navigate(`/room/${data.room.id}`);
-            break;
-          case "JOIN_ROOM":
-            console.log(data);
-            if (!data.success) {
-              setErrorJoin(data.message);
-              return;
-            }
-            updateUserFromWebSocket(data);
-            navigate(`/room/${data.room.id}`);
-            break;
-          default:
-            console.log("Unknown message type:", data);
-        }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+  const handleCreateRoom = async (roomName: string) => {
+    try {
+      setErrorCreate(""); // Clear previous errors
+      const response = await fetch("http://localhost:3000/lobby/rooms", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomName }),
+      });
+      const data = await response.json();
+      if (response.status === 201) {
+        navigate(`/room/${data.id}`);
+      } else {
+        setErrorCreate(data.message || "Erro ao criar sala. Tente novamente.");
       }
-    }
-  }, [lastMessage, navigate]);
-
-  const handleCreateRoom = (roomName: string) => {
-    if (readyState === ReadyState.OPEN) {
-      sendMessage(JSON.stringify({ type: "CREATE_ROOM", roomName }));
+    } catch (err) {
+      console.error(err);
+      setErrorCreate(
+        "Erro de conexão. Verifique sua internet e tente novamente."
+      );
     }
   };
 
-  const handleJoinRoom = (roomId: string) => {
-    if (readyState === ReadyState.OPEN) {
-      sendMessage(JSON.stringify({ type: "JOIN_ROOM", roomId }));
+  const handleJoinRoom = async (roomId: string) => {
+    setErrorJoin(""); // Clear previous errors
+    try {
+      navigate(`/room/${roomId}`);
+    } catch (err) {
+      console.error(err);
+      setErrorJoin(
+        "Erro de conexão. Verifique sua internet e tente novamente."
+      );
     }
   };
 
@@ -94,9 +85,6 @@ const Lobby: React.FC = () => {
         <Typography variant="h5" sx={{ opacity: 0.9 }}>
           Crie uma nova sala ou entre em uma sala existente
         </Typography>
-        <Typography variant="body2" sx={{ mt: 1, opacity: 0.7 }}>
-          Connection Status: {connectionStatus}
-        </Typography>
 
         <Box sx={{ position: "absolute", top: 16, right: 16 }}>
           <Button
@@ -114,7 +102,10 @@ const Lobby: React.FC = () => {
       <Grid container spacing={4} sx={{ mt: 2 }}>
         {/* Componente Criar Sala */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <CreateRoom onCreateRoom={handleCreateRoom} />
+          <CreateRoom
+            onCreateRoom={handleCreateRoom}
+            errorMessage={errorCreate}
+          />
         </Grid>
 
         {/* Componente Entrar em Sala */}
