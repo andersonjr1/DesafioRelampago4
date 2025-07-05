@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Container, Grid, Paper } from "@mui/material";
+import { Box, Typography, Container, Grid, Paper, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CreateRoom from "../components/CreateRoom";
 import JoinRoom from "../components/JoinRoom";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { ReadyState } from "react-use-websocket";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -22,7 +23,7 @@ const Lobby: React.FC = () => {
   const navigate = useNavigate();
   const { sendMessage, lastMessage, readyState, connectionStatus } =
     useWebSocketContext();
-  const { updateUserFromWebSocket } = useUserContext();
+  const { updateUserFromWebSocket, clearUser } = useUserContext();
 
   // Handle incoming messages
   React.useEffect(() => {
@@ -65,6 +66,19 @@ const Lobby: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:3000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      clearUser(); // Limpa o contexto
+      navigate("/login");
+    } catch (err) {
+      console.error("Erro ao fazer logout", err);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4, position: "relative" }}>
       {/* Header do Lobby */}
@@ -83,6 +97,17 @@ const Lobby: React.FC = () => {
         <Typography variant="body2" sx={{ mt: 1, opacity: 0.7 }}>
           Connection Status: {connectionStatus}
         </Typography>
+
+        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={<LogoutIcon />}
+            onClick={handleLogout}
+          >
+            Sair
+          </Button>
+        </Box>
       </StyledHeader>
 
       {/* Grid com os componentes */}

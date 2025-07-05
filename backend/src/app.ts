@@ -11,6 +11,7 @@ import { verifyTokenForWebSocket } from "./utils/verifyTokenForwebSocket";
 
 import { router } from "./routes";
 import { config } from "./config";
+import cors from "cors";
 import { initializeUnoGameService, UnoWebSocket } from "./services/unoGameService";
 
 const app = express();
@@ -19,6 +20,13 @@ const PORT = config.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.static(path.join(__dirname, "../../frontend")));
 
 // Routes
@@ -88,3 +96,8 @@ server.on(
 server.listen(PORT, () => {
   console.log(`HTTP and WebSocket server running: http://localhost:${PORT}`);
 });
+
+
+app.listen(config.PORT, () =>
+  console.log(`Servidor rodando na porta ${config.PORT}`)
+);

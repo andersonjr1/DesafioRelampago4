@@ -30,6 +30,31 @@ const colorMap: Record<UnoColor, string> = {
   black: "#2b2b2b", // Para as cartas coringa
 };
 
+// --- Mapa de Valores Especiais ---
+// Mapeia valores especiais para seus símbolos correspondentes
+const getDisplayValue = (value: UnoValue): string => {
+  const valueStr = String(value).toLowerCase();
+
+  switch (valueStr) {
+    case "skip":
+      return "⊘";
+    case "reverse":
+      return "🗘";
+    case "draw two":
+    case "drawtwo":
+    case "+2":
+      return "+2";
+    case "wild draw four":
+    case "wilddrawfour":
+    case "+4":
+      return "+4";
+    case "wild":
+      return "";
+    default:
+      return String(value);
+  }
+};
+
 // --- Componentes Estilizados (Styled Components) ---
 
 // O container principal da carta.
@@ -111,23 +136,29 @@ const UnoCardFront: React.FC<UnoCardProps> = ({ color, value, onSelect }) => {
   const isWild = color === "black";
   // Obtém a cor de fundo a partir do mapa de cores.
   const backgroundColor = colorMap[color] || colorMap.black;
+  // Obtém o valor de exibição com símbolos especiais
+  const displayValue = getDisplayValue(value);
 
   return (
-    <CardContainer cardColor={backgroundColor} onClick={onSelect} sx={{ cursor: onSelect ? 'pointer' : 'default' }}>
+    <CardContainer
+      cardColor={backgroundColor}
+      onClick={onSelect}
+      sx={{ cursor: onSelect ? "pointer" : "default" }}
+    >
       {/* Canto superior esquerdo */}
-      <CornerValue sx={{ top: 8, left: 16 }}>{value}</CornerValue>
+      <CornerValue sx={{ top: 8, left: 16 }}>{displayValue}</CornerValue>
 
       {/* Elemento central da carta */}
       {!isWild && <CenterOval />}
       {isWild ? (
         <WildColorDisplay />
       ) : (
-        <CenterValue cardColor={backgroundColor}>{value}</CenterValue>
+        <CenterValue cardColor={backgroundColor}>{displayValue}</CenterValue>
       )}
 
       {/* Canto inferior direito (rotacionado) */}
       <CornerValue sx={{ bottom: 8, right: 16, transform: "rotate(180deg)" }}>
-        {value}
+        {displayValue}
       </CornerValue>
     </CardContainer>
   );
