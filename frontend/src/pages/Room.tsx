@@ -72,8 +72,9 @@ const Room: React.FC = () => {
 
   // Start WebSocket connection when component mounts
   React.useEffect(() => {
+    console.log("teste");
     connect();
-  }, [connect]);
+  }, []);
 
   // Console log user information when component mounts or user changes
   React.useEffect(() => {
@@ -89,11 +90,14 @@ const Room: React.FC = () => {
     if (lastMessage !== null) {
       try {
         const data = JSON.parse(lastMessage.data);
+        console.log(data);
 
         switch (data.type) {
           case "CREATE_ROOM":
             setPlayers(data.room.players);
-            setPlayersOrder(getPlayerOrder(data.room.players, user.id));
+            if (user.id) {
+              setPlayersOrder(getPlayerOrder(data.room.players, user.id));
+            }
             setOwner(true);
             break;
           // case "JOIN_ROOM":
@@ -112,7 +116,9 @@ const Room: React.FC = () => {
             console.log("Room updated:", data);
             setRoomStatus(data.room.status);
             setPlayers(data.room.players);
-            setPlayersOrder(getPlayerOrder(data.room.players, user.id));
+            if (user.id) {
+              setPlayersOrder(getPlayerOrder(data.room.players, user.id));
+            }
             setCurrentPlayerId(data.room.currentPlayerId);
             setCurrentCard(data.room.currentCard);
             setGameDirection(data.room.gameDirection);
