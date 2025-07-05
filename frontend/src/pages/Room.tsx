@@ -56,7 +56,8 @@ const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const [openColorChoiceModal, setOpenColorChoiceModal] =
     React.useState<boolean>(false);
-  const { sendMessage, lastMessage, readyState } = useWebSocketContext();
+  const { sendMessage, lastMessage, readyState, connect } =
+    useWebSocketContext();
   const { user } = useUserContext();
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [playersOrder, setPlayersOrder] = React.useState<number[]>([]);
@@ -68,7 +69,11 @@ const Room: React.FC = () => {
   const [showWinner, setShowWinner] = React.useState<boolean>(false);
   const [roomStatus, setRoomStatus] = React.useState<string>("");
   const [gameDirection, setGameDirection] = React.useState<string>("");
-  console.log(openColorChoiceModal);
+
+  // Start WebSocket connection when component mounts
+  React.useEffect(() => {
+    connect();
+  }, [connect]);
 
   // Console log user information when component mounts or user changes
   React.useEffect(() => {
