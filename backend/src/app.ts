@@ -30,7 +30,7 @@ app.use(
 app.use(express.static(path.join(__dirname, "../../frontend")));
 
 // Routes
-app.use("/api", router);
+app.use(router);
 
 // Create HTTP server and WebSocket server
 const server = http.createServer(app);
