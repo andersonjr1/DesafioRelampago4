@@ -41,7 +41,7 @@ function AppRoutes() {
     };
 
     checkSession();
-  }, [setUser]);
+  }, []);
 
   return (
     <Routes>

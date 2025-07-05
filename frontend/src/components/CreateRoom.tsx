@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -24,32 +24,25 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
-    // A lighter background for better contrast on blue
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: theme.spacing(1),
     "& fieldset": {
-      // A subtle, light border in the normal state
       borderColor: "rgba(255, 255, 255, 0.3)",
     },
     "&:hover fieldset": {
-      // A more prominent border on hover for clear feedback
       borderColor: "rgba(255, 255, 255, 0.7)",
     },
     "&.Mui-focused fieldset": {
-      // A solid, distinct border when the field is active
       borderColor: theme.palette.common.white,
     },
     "& .MuiOutlinedInput-input": {
-      // Ensure the input text is white for readability
       color: theme.palette.common.white,
     },
   },
   "& .MuiInputLabel-root": {
-    // A lighter label color for visibility against blue
     color: "rgba(255, 255, 255, 0.7)",
   },
   "& .MuiInputLabel-root.Mui-focused": {
-    // Ensure the focused label is also white and fully opaque
     color: theme.palette.common.white,
   },
 }));
@@ -73,41 +66,52 @@ const ActionButton = styled(Button)(({ theme }) => ({
 
 interface CreateRoomProps {
   onCreateRoom?: (roomName: string) => void;
+  errorMessage?: string;
 }
 
-const CreateRoom: React.FC<CreateRoomProps> = ({ onCreateRoom }) => {
+const CreateRoom: React.FC<CreateRoomProps> = ({
+  onCreateRoom,
+  errorMessage,
+}) => {
   const [roomName, setRoomName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
+
+  // Clear local error when external error changes
+  useEffect(() => {
+    if (errorMessage) {
+      setLocalError("");
+      setLoading(false);
+    }
+  }, [errorMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!roomName.trim()) {
-      setError("Por favor, digite um nome para a sala.");
+      setLocalError("Por favor, digite um nome para a sala.");
       return;
     }
 
     if (roomName.trim().length < 3) {
-      setError("O nome da sala deve ter pelo menos 3 caracteres.");
+      setLocalError("O nome da sala deve ter pelo menos 3 caracteres.");
       return;
     }
 
     setLoading(true);
-    setError("");
+    setLocalError("");
 
     try {
-      // Simular criação de sala
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       if (onCreateRoom) {
-        onCreateRoom(roomName.trim());
+        await onCreateRoom(roomName.trim());
+        // Only clear the field if no error occurred
+        if (!errorMessage) {
+          setRoomName("");
+        }
       }
-
-      // Limpar o campo após criar
-      setRoomName("");
     } catch (err) {
-      setError("Erro ao criar sala. Tente novamente.");
+      console.log(err);
+      setLocalError("Erro ao criar sala. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -115,8 +119,11 @@ const CreateRoom: React.FC<CreateRoomProps> = ({ onCreateRoom }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoomName(e.target.value);
-    setError(""); // Limpar erro ao digitar
+    setLocalError(""); // Clear local error when typing
   };
+
+  // Display external error message or local error
+  const displayError = errorMessage || localError;
 
   return (
     <StyledPaper elevation={6}>
@@ -131,12 +138,12 @@ const CreateRoom: React.FC<CreateRoomProps> = ({ onCreateRoom }) => {
         Criar Nova Sala
       </Typography>
 
-      {error && (
+      {displayError && (
         <Alert
           severity="error"
           sx={{ mb: 2, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
         >
-          {error}
+          {displayError}
         </Alert>
       )}
 
