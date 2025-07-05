@@ -2,6 +2,7 @@ import React from "react";
 import { Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import EnemyProfile from "./EnemyProfile";
+import type { Theme } from "@mui/material/styles";
 
 // --- Interfaces ---
 interface EnemyHandProps {
@@ -13,12 +14,17 @@ interface EnemyHandProps {
   playerId: string;
   currentPlayerId: string;
 }
+interface StyleProps {
+  theme: Theme;
+  position: number;
+  isCurrentPlayer: boolean;
+}
 
 // --- Styled Components ---
 const HandContainer = styled(Box)<{
   position: number;
   isCurrentPlayer: boolean;
-}>(({ theme, position, isCurrentPlayer }) => {
+}>(({ theme, position, isCurrentPlayer }: StyleProps) => {
   const baseStyles = {
     display: "flex",
     justifyContent: "center",

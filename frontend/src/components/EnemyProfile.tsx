@@ -10,12 +10,13 @@ import {
   Box,
 } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
+import { useWebSocketContext } from "../contexts/WebSocketContext";
+import type { Theme } from "@mui/material/styles";
 
 // Ícones para uma melhor representação visual
 import StyleIcon from "@mui/icons-material/Style"; // Ícone de cartas empilhadas
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"; // Ícone de sucesso
 import CampaignIcon from "@mui/icons-material/Campaign"; // Ícone para "gritar" ou "denunciar"
-import { useWebSocketContext } from "../contexts/WebSocketContext";
 
 // --- Interfaces ---
 interface EnemyProfileProps {
@@ -42,37 +43,37 @@ const pulseAnimation = keyframes`
 type ProfileStatus = "danger" | "warning" | "normal";
 
 const ProfileCard = styled(Card, {
-  shouldForwardProp: (prop) => prop !== "status",
-})<{ status: ProfileStatus }>(({ theme, status }) => ({
-  position: "relative",
-  minWidth: 180,
-  textAlign: "center",
-  border: "2px solid",
-  transition:
-    "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.3s",
-  // Cor da borda dinâmica baseada no status do jogador
-  borderColor:
-    status === "danger"
-      ? theme.palette.error.main
-      : status === "warning"
-      ? theme.palette.warning.main
-      : theme.palette.grey[300],
-  // Animação de pulso para o estado de perigo
-  animation: status === "danger" ? `${pulseAnimation} 2s infinite` : "none",
-  "&:hover": {
-    transform: "scale(1.05)",
-    boxShadow: theme.shadows[10],
-  },
-}));
+  shouldForwardProp: (prop: string) => prop !== "status",
+})<{ theme: Theme; status: ProfileStatus }>(
+  ({ theme, status }: { theme: Theme; status: ProfileStatus }) => ({
+    position: "relative",
+    minWidth: 180,
+    textAlign: "center",
+    border: "2px solid",
+    transition:
+      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.3s",
+    borderColor:
+      status === "danger"
+        ? theme.palette.error.main
+        : status === "warning"
+        ? theme.palette.warning.main
+        : theme.palette.grey[300],
+    animation: status === "danger" ? `${pulseAnimation} 2s infinite` : "none",
+    "&:hover": {
+      transform: "scale(1.05)",
+      boxShadow: theme.shadows[10],
+    },
+  })
+);
 
-const PlayerName = styled(Typography)(({ theme }) => ({
+const PlayerName = styled(Typography)(({ theme }: Theme) => ({
   fontWeight: "bold",
   textOverflow: "ellipsis",
   overflow: "hidden",
   whiteSpace: "nowrap",
 }));
 
-const CardCountBox = styled(Box)(({ theme }) => ({
+const CardCountBox = styled(Box)(({ theme }: Theme) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -80,14 +81,14 @@ const CardCountBox = styled(Box)(({ theme }) => ({
   margin: theme.spacing(1.5, 0),
 }));
 
-const CardCountText = styled(Typography)(({ theme }) => ({
+const CardCountText = styled(Typography)(({ theme }: Theme) => ({
   fontSize: "2rem",
   fontWeight: "bold",
   lineHeight: 1,
   color: theme.palette.text.primary,
 }));
 
-const UnoStatusChip = styled(Chip)(({ theme }) => ({
+const UnoStatusChip = styled(Chip)(({ theme }: Theme) => ({
   marginTop: theme.spacing(1),
   fontWeight: "bold",
   color: theme.palette.success.contrastText,
@@ -100,7 +101,7 @@ const EnemyProfile: React.FC<EnemyProfileProps> = ({
   name,
   cardCount,
   yelledUno,
-}) => {
+}: EnemyProfileProps) => {
   const { sendMessage } = useWebSocketContext();
   const handleReportUno = () => {
     sendMessage(JSON.stringify({ type: "ACCUSE_NO_UNO", playerId: id }));
