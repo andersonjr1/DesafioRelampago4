@@ -10,6 +10,7 @@ import ColorChoiceModal from "../components/ColorChoiceModal";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
 import { ReadyState } from "react-use-websocket";
+import Winner from "../components/Winner";
 
 interface Card {
   color: string;
@@ -63,6 +64,10 @@ const Room: React.FC = () => {
   const [currentCard, setCurrentCard] = React.useState<Card>();
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
   const [playerHand, setPlayerHand] = React.useState<Card[]>([]);
+  const [winnerName, setWinnerName] = React.useState<string>("");
+  const [showWinner, setShowWinner] = React.useState<boolean>(false);
+  const [roomStatus, setRoomStatus] = React.useState<string>("");
+  const [gameDirection, setGameDirection] = React.useState<string>("");
   console.log(openColorChoiceModal);
 
   // Console log user information when component mounts or user changes
@@ -100,10 +105,12 @@ const Room: React.FC = () => {
           //   break;
           case "UPDATE_ROOM":
             console.log("Room updated:", data);
+            setRoomStatus(data.room.status);
             setPlayers(data.room.players);
             setPlayersOrder(getPlayerOrder(data.room.players, user.id));
             setCurrentPlayerId(data.room.currentPlayerId);
             setCurrentCard(data.room.currentCard);
+            setGameDirection(data.room.gameDirection);
             if (data.playerHand) {
               setPlayerHand(data.playerHand);
             }
@@ -112,6 +119,10 @@ const Room: React.FC = () => {
               data.room.currentPlayerId === user.id
             ) {
               setOpenColorChoiceModal(true);
+            }
+            if (data.winner) {
+              setWinnerName(data.room.name);
+              setShowWinner(true);
             }
             break;
           case "ERROR":
@@ -142,16 +153,21 @@ const Room: React.FC = () => {
   console.log(playersOrder);
   return (
     <>
-      <Box
-        sx={{
-          position: "fixed",
-          top: 16,
-          right: 16,
-          zIndex: 1000,
-        }}
-      >
-        {code && <RoomCodeDisplay roomCode={code} owner={owner} />}
-      </Box>
+      {roomStatus != "IN_GAME" && (
+        <>
+          <Box
+            sx={{
+              position: "fixed",
+              top: 16,
+              right: 16,
+              zIndex: 1000,
+            }}
+          >
+            {code && <RoomCodeDisplay roomCode={code} owner={owner} />}
+          </Box>
+        </>
+      )}
+
       {playersOrder.map((playerIndex, position) => {
         const player = players[playerIndex];
         if (position == 0) {
@@ -186,7 +202,10 @@ const Room: React.FC = () => {
             onSkipTurn={handleSkipTurn}
             onSelectCardBack={handleBuyCard}
           />
-          <GameInformations gameDirection="clockwise" gameColor={currentCard} />
+          <GameInformations
+            gameDirection={gameDirection}
+            gameColor={currentCard}
+          />
           <ColorChoiceModal
             open={openColorChoiceModal}
             hand={playerHand}
@@ -206,9 +225,11 @@ const Room: React.FC = () => {
         </>
       )}
 
-      {/*
-
-       */}
+      <Winner
+        winnerName={winnerName}
+        open={showWinner}
+        onClose={() => setShowWinner(false)}
+      />
     </>
   );
 };
