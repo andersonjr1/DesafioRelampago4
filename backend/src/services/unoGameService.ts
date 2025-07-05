@@ -399,8 +399,8 @@ function handleClientMessage(ws: UnoWebSocket, data: UnoClientMessage): void {
 }
 
 function handleStartGame(ws: UnoWebSocket, room: UnoRoom): void {
-  if (room.players.size < 2) {
-    sendToUnoClient(ws, "ERROR", { message: "Mínimo de 2 jogadores necessário" });
+  if (room.players.size < 3) {
+    sendToUnoClient(ws, "ERROR", { message: "Mínimo de 3 jogadores necessário" });
     return;
   }
   
@@ -721,7 +721,7 @@ function joinRoomForApi(playerId: string, playerName: string, roomId: string): R
     throw new Error("Sala não encontrada");
   }
   
-  if (room.players.size >= 10) {
+  if (room.players.size >= 4) {
     throw new Error("Sala está cheia");
   }
   
@@ -741,7 +741,7 @@ function joinRoomForApi(playerId: string, playerName: string, roomId: string): R
   };
 
   room.players.set(playerId, player);
-  room.canStart = room.players.size >= 2;
+  room.canStart = room.players.size >= 3;
   
   log(`Player ${playerName} joined room ${roomId} via API`);
   return getRoomStateForApi(room, playerId);
