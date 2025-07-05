@@ -11,6 +11,8 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import { useUserContext } from "../contexts/UserContext";
+import { useEffect } from "react";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -75,6 +77,29 @@ const Login: React.FC = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { setUser } = useUserContext();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/session", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser({
+            id: data.data.id,
+            name: data.data.name,
+          });
+          navigate("/lobby");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar sessão", err);
+      }
+    };
+
+    checkSession();
+  }, [navigate, setUser]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -90,7 +115,6 @@ const Login: React.FC = () => {
     setLoading(true);
     setError("");
 
-    // Validação básica
     if (!formData.email || !formData.password) {
       setError("Por favor, preencha todos os campos.");
       setLoading(false);
@@ -98,15 +122,30 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Aqui você implementaria a lógica de autenticação
-      // Por enquanto, simularemos um login bem-sucedido
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      // Simular sucesso - redirecionar para dashboard ou home
-      console.log("Login realizado com sucesso!");
-      navigate("/lobby"); // ou onde você quiser redirecionar
+      if (res.ok) {
+        const data = await res.json();
+        setUser({
+          id: data.data.id,
+          name: data.data.name,
+        });
+        navigate("/lobby");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Erro ao fazer login");
+      }
     } catch (err) {
-      setError("Erro ao fazer login. Verifique suas credenciais.");
+      console.error(err);
+      setError("Erro ao se conectar ao servidor");
     } finally {
       setLoading(false);
     }
