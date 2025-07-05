@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Circle } from "@mui/icons-material";
+import type { Theme } from "@mui/material/styles";
 
 // --- Interfaces ---
 interface GameColorProps {
@@ -10,8 +11,12 @@ interface GameColorProps {
   chosenColor?: string;
 }
 
+interface ColorIconProps {
+  gamecolor: string;
+}
+
 // --- Styled Components ---
-const ColorContainer = styled(Box)(({ theme }) => ({
+const ColorContainer = styled(Box)(({ theme }: Theme) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(1),
@@ -21,12 +26,14 @@ const ColorContainer = styled(Box)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
 }));
 
-const ColorIcon = styled(Circle)<{ gamecolor: string }>(({ gamecolor }) => ({
-  fontSize: "1.5rem",
-  color: gamecolor,
-}));
+const ColorIcon = styled(Circle)<ColorIconProps>(
+  ({ gamecolor }: ColorIconProps) => ({
+    fontSize: "1.5rem",
+    color: gamecolor,
+  })
+);
 
-const ColorText = styled(Typography)(({ theme }) => ({
+const ColorText = styled(Typography)(({ theme }: Theme) => ({
   fontWeight: "bold",
   color: theme.palette.text.primary,
   fontSize: "0.875rem",
@@ -42,7 +49,11 @@ const colorMap: { [key: string]: string } = {
 };
 
 // --- Componente Principal ---
-const GameColor: React.FC<GameColorProps> = ({ color, value, chosenColor }) => {
+const GameColor: React.FC<GameColorProps> = ({
+  color,
+  value,
+  chosenColor,
+}: GameColorProps) => {
   const displayColor = chosenColor || color;
   const colorValue = colorMap[displayColor] || displayColor;
 
