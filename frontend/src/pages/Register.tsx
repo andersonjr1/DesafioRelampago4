@@ -117,15 +117,25 @@ const Register: React.FC = () => {
     }
 
     try {
-      // Aqui você implementaria a lógica de registro
-      // Por enquanto, simularemos um registro bem-sucedido
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      // Simular sucesso - redirecionar para login
-      console.log("Registro realizado com sucesso!");
-      navigate("/login");
+      if (res.ok) {
+        navigate("/login");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Erro ao criar conta");
+      }
     } catch (err) {
-      setError("Erro ao criar conta. Tente novamente.");
+      console.error(err);
+      setError("Erro ao se conectar ao servidor");
     } finally {
       setLoading(false);
     }
