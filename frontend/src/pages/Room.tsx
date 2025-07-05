@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, Snackbar, Alert } from "@mui/material";
 import { useParams } from "react-router-dom";
 import RoomCodeDisplay from "../components/RoomCodeDisplay";
 import UserHand from "../components/UserHand";
@@ -36,9 +36,10 @@ function getPlayerOrder(playersArray: Player[], startPlayerId: string) {
   const startIndex = playersArray.findIndex(
     (player) => startPlayerId === player.id
   );
+  if (startIndex === -1) return []; // Handle case where user is not in the players array yet
   arrayOrder.push(startIndex);
   playersArray.forEach((_, index) => {
-    if (index == startIndex) {
+    if (index === startIndex) {
       return;
     }
     if (index <= startIndex) {
@@ -56,7 +57,8 @@ const Room: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const [openColorChoiceModal, setOpenColorChoiceModal] =
     React.useState<boolean>(false);
-  const { sendMessage, lastMessage, readyState, connect } =
+  // Get both connect and disconnect from the context
+  const { sendMessage, lastMessage, readyState, connect, disconnect } =
     useWebSocketContext();
   const { user } = useUserContext();
   const [players, setPlayers] = React.useState<Player[]>([]);
@@ -69,12 +71,22 @@ const Room: React.FC = () => {
   const [showWinner, setShowWinner] = React.useState<boolean>(false);
   const [roomStatus, setRoomStatus] = React.useState<string>("");
   const [gameDirection, setGameDirection] = React.useState<string>("");
+  const [errorMessage, setErrorMessage] = React.useState<string>("");
+  const [showError, setShowError] = React.useState<boolean>(false);
 
-  // Start WebSocket connection when component mounts
+  // Start WebSocket connection when component mounts and disconnect when it unmounts
   React.useEffect(() => {
-    console.log("teste");
-    connect();
-  }, []);
+    console.log("Room component mounted. Connecting to WebSocket...");
+    if (code) {
+      connect(code);
+    }
+
+    // Return a cleanup function to be called when the component unmounts
+    return () => {
+      console.log("Room component unmounted. Disconnecting from WebSocket...");
+      disconnect();
+    };
+  }, []); // Dependencies for the effect
 
   // Console log user information when component mounts or user changes
   React.useEffect(() => {
@@ -90,55 +102,46 @@ const Room: React.FC = () => {
     if (lastMessage !== null) {
       try {
         const data = JSON.parse(lastMessage.data);
-        console.log(data);
+        // console.log(data);
 
         switch (data.type) {
-          case "CREATE_ROOM":
-            setPlayers(data.room.players);
-            if (user.id) {
-              setPlayersOrder(getPlayerOrder(data.room.players, user.id));
-            }
-            setOwner(true);
-            break;
-          // case "JOIN_ROOM":
-          //   console.log("Player joined room:", data);
-          //   // Handle player joining room
-          //   break;
           case "DELETE_ROOM":
-            console.log("Room deleted:", data);
+            console.log("Room deleted:");
             // Handle room deletion - maybe redirect to lobby
             break;
-          // case "START_GAME":
-          //   console.log("Game started:", data);
-          //   // Handle game start - update UI to show game state
-          //   break;
+          case "START_GAME":
+            console.log("Game started:", data);
+            // Handle game start - update UI to show game state
+            break;
           case "UPDATE_ROOM":
-            console.log("Room updated:", data);
-            setRoomStatus(data.room.status);
-            setPlayers(data.room.players);
+            console.log("Room updated:", data.payload);
+            setRoomStatus(data.payload.status);
+            setPlayers(data.payload.players);
             if (user.id) {
-              setPlayersOrder(getPlayerOrder(data.room.players, user.id));
+              setOwner(data.payload.ownerId === user.id);
+              setPlayersOrder(getPlayerOrder(data.payload.players, user.id));
             }
-            setCurrentPlayerId(data.room.currentPlayerId);
-            setCurrentCard(data.room.currentCard);
-            setGameDirection(data.room.gameDirection);
-            if (data.playerHand) {
-              setPlayerHand(data.playerHand);
+            setCurrentPlayerId(data.payload.currentPlayerId);
+            setCurrentCard(data.payload.currentCard);
+            setGameDirection(data.payload.gameDirection);
+            if (data.payload.playerHand) {
+              setPlayerHand(data.payload.playerHand);
             }
             if (
-              data.room.additionalState === "CHOOSING_COLOR" &&
-              data.room.currentPlayerId === user.id
+              data.payload.additionalState === "CHOOSING_COLOR" &&
+              data.payload.currentPlayerId === user.id
             ) {
               setOpenColorChoiceModal(true);
             }
-            if (data.winner) {
-              setWinnerName(data.room.name);
+            if (data.payload.winner) {
+              setWinnerName(data.payload.winner);
               setShowWinner(true);
             }
             break;
           case "ERROR":
-            console.error("Server error:", data);
-            // Handle server errors - show error message to user
+            console.error("Server error:", data.payload.message);
+            setErrorMessage(data.payload.message);
+            setShowError(true);
             break;
           default:
             console.log("Unknown message type:", data.type, data);
@@ -148,7 +151,12 @@ const Room: React.FC = () => {
         console.error("Error parsing WebSocket message in Room:", error);
       }
     }
-  }, [lastMessage]);
+  }, [lastMessage, user.id]);
+
+  const handleCloseError = () => {
+    setShowError(false);
+    setErrorMessage("");
+  };
 
   const handleSkipTurn = () => {
     if (readyState === ReadyState.OPEN) {
@@ -161,10 +169,10 @@ const Room: React.FC = () => {
       sendMessage(JSON.stringify({ type: "BUY_CARD", roomCode: code }));
     }
   };
-  console.log(playersOrder);
+
   return (
     <>
-      {roomStatus != "IN_GAME" && (
+      {roomStatus !== "IN_GAME" && (
         <>
           <Box
             sx={{
@@ -181,9 +189,11 @@ const Room: React.FC = () => {
 
       {playersOrder.map((playerIndex, position) => {
         const player = players[playerIndex];
-        if (position == 0) {
+        if (!player) return null; // Defensive check
+        if (position === 0) {
           return (
             <UserHand
+              key={player.id}
               name={player.name || ""}
               cardCount={player.cardCount || 0}
               yelledUno={player.yelledUno || false}
@@ -225,7 +235,9 @@ const Room: React.FC = () => {
                 sendMessage(
                   JSON.stringify({
                     type: "CHOOSE_COLOR",
-                    color,
+                    payload: {
+                      color,
+                    },
                   })
                 );
               }
@@ -241,6 +253,22 @@ const Room: React.FC = () => {
         open={showWinner}
         onClose={() => setShowWinner(false)}
       />
+
+      <Snackbar
+        open={showError}
+        autoHideDuration={3000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseError}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
