@@ -97,7 +97,7 @@ const UserHand: React.FC<UserHandProps> = ({
   const isCurrentPlayer = playerId === currentPlayerId;
   const { sendMessage } = useWebSocketContext();
   const handleCardSelect = (card: Card) => {
-    sendMessage(JSON.stringify({ type: "PLAY_CARD", card }));
+    sendMessage(JSON.stringify({ type: "PLAY_CARD", payload: { card } }));
   };
 
   return (

@@ -5,7 +5,7 @@ import { WebSocketServer } from "ws";
 import url from "url";
 import stream from "stream";
 import cookieParser from "cookie-parser";
-import cookie from "cookie";
+import * as cookie from "cookie";
 
 import { verifyTokenForWebSocket } from "./utils/verifyTokenForwebSocket";
 
@@ -13,6 +13,7 @@ import { router } from "./routes";
 import { config } from "./config";
 import cors from "cors";
 import { initializeUnoGameService, UnoWebSocket } from "./services/unoGameService";
+import { Console } from "console";
 
 const app = express();
 const PORT = config.PORT || 3000;
@@ -53,12 +54,14 @@ server.on(
     const pathname = request.url ? url.parse(request.url).pathname : "";
     const wsPathRegex = /^\/ws\/([a-zA-Z0-9]+)$/;
     const match = pathname?.match(wsPathRegex);
-
+    console.log(pathname)
     if (!match) {
       socket.destroy();
       return;
     }
+
     const roomCode = match[1];
+    console.log(roomCode)
 
     // Parse cookies for authentication
     const cookies = cookie.parse(request.headers.cookie || "");

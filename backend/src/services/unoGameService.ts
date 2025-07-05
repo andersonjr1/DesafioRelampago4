@@ -210,6 +210,7 @@ export function sendToUnoClient<T extends UnoServerMessageType>(
 }
 
 function handlePlayerConnect(ws: UnoWebSocket): void {
+  console.log("tentando conectar")
   const roomId = ws.currentRoomId;
   const room = rooms.get(roomId);
 
@@ -248,7 +249,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
       return;
     }
 
-    if (room.players.size >= 10) {
+    if (room.players.size >= 4) {
       sendToUnoClient(ws, "ERROR", { message: "Sala está cheia" });
       ws.close();
       return;
@@ -268,7 +269,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     };
 
     room.players.set(ws.playerId, newPlayer);
-    room.canStart = room.players.size >= 2;
+    room.canStart = room.players.size >= 3;
     log(`Player ${ws.playerName} joined room ${roomId}`, { playerId: ws.playerId });
   }
 
@@ -476,10 +477,10 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   if (player.hand.length === 0) {
     room.status = 'FINISHED';
     broadcastToRoom(room, {
-      type: 'GAME_FINISHED',
+      type: 'UPDATE_ROOM',
       payload: {
         winner: player.name,
-        room: getRoomStateForApi(room)
+        ...getRoomStateForApi(room)
       }
     });
     return;
@@ -603,7 +604,7 @@ function handleYellUno(ws: UnoWebSocket, room: UnoRoom): void {
     type: 'UPDATE_ROOM',
     payload: {
       message: `${player.name} gritou UNO!`,
-      room: getRoomStateForApi(room)
+      ...getRoomStateForApi(room)
     }
   });
 }

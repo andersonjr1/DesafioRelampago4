@@ -7,7 +7,8 @@ interface WebSocketContextType {
   lastMessage: MessageEvent<string> | null;
   readyState: ReadyState;
   connectionStatus: string;
-  connect: () => void;
+  connect: (code: string) => void;
+
   disconnect: () => void;
 }
 
@@ -23,8 +24,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
   const [socketUrl, setSocketUrl] = useState<string | null>(null);
-
-  const { sendMessage, lastMessage, readyState, getWebSocket } = useWebSocket(
+  const { sendMessage, lastMessage, readyState } = useWebSocket(
     socketUrl,
     {
       onOpen: () => {
@@ -36,9 +36,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       onError: (error) => {
         console.error("WebSocket error:", error);
       },
-      shouldReconnect: () => socketUrl !== null,
+      shouldReconnect: () => true, // Let the 'connect' boolean handle reconnect logic
     },
-    socketUrl === null // Don't connect when socketUrl is null
+    // This is the corrected line:
+    socketUrl !== null // Only connect when socketUrl is not null
   );
 
   const connectionStatus = {
@@ -49,19 +50,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     [ReadyState.UNINSTANTIATED]: "Uninstantiated",
   }[readyState];
 
-  const connect = useCallback(() => {
-    if (socketUrl === null) {
-      setSocketUrl("ws://localhost:3000");
-    }
-  }, [socketUrl]);
+  const connect = useCallback((code: string) => {
+    setSocketUrl(`ws://localhost:3000/ws/${code}`);
+  }, []);
 
   const disconnect = useCallback(() => {
-    const ws = getWebSocket();
-    if (ws) {
-      ws.close();
-    }
+    // Setting the URL to null will trigger the disconnect
     setSocketUrl(null);
-  }, [getWebSocket]);
+  }, []);
 
   const value = {
     sendMessage,
