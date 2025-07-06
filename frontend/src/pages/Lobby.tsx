@@ -91,24 +91,42 @@ const Lobby: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4, position: "relative" }}>
       {/* Header do Lobby */}
-      <StyledHeader elevation={6}>
-        <Typography
-          variant="h2"
-          component="h1"
-          gutterBottom
-          sx={{ fontWeight: "bold" }}
+      <StyledHeader elevation={6} sx={{ position: "relative" }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 2,
+          }}
         >
-          Lobby de Salas
-        </Typography>
-        <Typography variant="h5" sx={{ opacity: 0.9 }}>
-          Crie uma nova sala ou entre em uma sala existente
-        </Typography>
-
-        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
           <LogoutButton startIcon={<LogoutIcon />} onClick={handleLogout}>
             Sair
           </LogoutButton>
         </Box>
+
+        <Box sx={{ height: { xs: 48, md: 0 } }} />
+
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          Lobby de Salas
+        </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            opacity: 0.9,
+            textAlign: "center",
+          }}
+        >
+          Crie uma nova sala ou entre em uma sala existente
+        </Typography>
       </StyledHeader>
 
       {/* Grid com os componentes */}
