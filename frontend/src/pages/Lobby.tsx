@@ -8,12 +8,30 @@ import { useUserContext } from "../contexts/UserContext";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
+  position: "relative",
   padding: theme.spacing(4),
   textAlign: "center",
   background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   color: "white",
   marginBottom: theme.spacing(4),
   borderRadius: theme.spacing(2),
+}));
+
+const LogoutButton = styled(Button)(({ theme }) => ({
+  padding: theme.spacing(1.2, 3),
+  fontSize: "1rem",
+  fontWeight: "bold",
+  borderRadius: theme.spacing(3),
+  textTransform: "none",
+  background: "linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)",
+  color: "white",
+  border: "none",
+  boxShadow: "0 2px 8px 0 rgba(255, 105, 135, .12)",
+  transition: "background 0.2s, box-shadow 0.25s",
+  "&:hover": {
+    background: "linear-gradient(45deg, #FE6B8B 60%, #FF8E53 100%)",
+    boxShadow: "0 8px 24px 0 rgba(0, 0, 0, .1)",
+  },
 }));
 
 const Lobby: React.FC = () => {
@@ -87,14 +105,9 @@ const Lobby: React.FC = () => {
         </Typography>
 
         <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-          <Button
-            variant="outlined"
-            color="warning"
-            startIcon={<LogoutIcon />}
-            onClick={handleLogout}
-          >
+          <LogoutButton startIcon={<LogoutIcon />} onClick={handleLogout}>
             Sair
-          </Button>
+          </LogoutButton>
         </Box>
       </StyledHeader>
 
