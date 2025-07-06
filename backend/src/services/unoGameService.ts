@@ -859,7 +859,7 @@ function handleTimeLimit(room: UnoRoom): void {
       room.currentPlayerId = nextPlayer.id;
     }
     updatePlayerTurns(room);
-    broadcastRoomState(room);
+    broadcastRoomState(room, true);
     return;
   }
 
@@ -884,7 +884,7 @@ function handleTimeLimit(room: UnoRoom): void {
   }
 
   updatePlayerTurns(room);
-  broadcastRoomState(room);
+  broadcastRoomState(room, true);
   
   log(`Turn advanced due to time limit in room ${room.id}`);
 }
