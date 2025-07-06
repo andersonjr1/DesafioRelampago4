@@ -73,6 +73,8 @@ const Room: React.FC = () => {
   const [gameDirection, setGameDirection] = React.useState<string>("");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
   const [showError, setShowError] = React.useState<boolean>(false);
+  const [endTime, setEndTime] = React.useState<number>(0);
+  const [startTime, setStartTime] = React.useState<number>(0);
 
   // Start WebSocket connection when component mounts and disconnect when it unmounts
   React.useEffect(() => {
@@ -133,10 +135,23 @@ const Room: React.FC = () => {
             ) {
               setOpenColorChoiceModal(true);
             }
+            if (
+              data.payload.additionalState != "CHOOSING_COLOR" &&
+              openColorChoiceModal
+            ) {
+              setOpenColorChoiceModal(false);
+            }
             if (data.payload.winner) {
               setWinnerName(data.payload.winner);
               setShowWinner(true);
             }
+            if (data.payload.entTimestamp) {
+              setEndTime(data.payload.entTimestamp);
+            }
+            if (data.payload.startTimestamp) {
+              setStartTime(data.payload.startTimestamp);
+            }
+
             break;
           case "ERROR":
             console.error("Server error:", data.payload.message);
@@ -226,6 +241,8 @@ const Room: React.FC = () => {
           <GameInformations
             gameDirection={gameDirection}
             gameColor={currentCard}
+            startTime={startTime}
+            endTime={endTime}
           />
           <ColorChoiceModal
             open={openColorChoiceModal}
