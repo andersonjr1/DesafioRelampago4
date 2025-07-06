@@ -66,6 +66,7 @@ interface UnoRoom {
   currentPlayerId?: string;
   additionalState?: AdditionalState;
   players: Map<string, UnoPlayer>;
+  timeoutId?: ReturnType<typeof setTimeout>;
 }
 
 interface UnoClientMessage {
@@ -276,9 +277,27 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
   broadcastRoomState(room);
 }
 
-function broadcastRoomState(room: UnoRoom): void {
+function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
   log(`Broadcasting room state for room ${room.id}`);
-  
+  if(timeLimit){
+    const startTimestamp = Date.now();
+    const entTimestamp = startTimestamp + 15000;
+    room.players.forEach((player) => {
+      if (player.ws && player.ws.readyState === WebSocket.OPEN) {
+        const personalRoomState = getRoomStateForApi(room, player.id);
+        const sentObject = {
+          ...personalRoomState,
+          startTimestamp,
+          entTimestamp
+        }
+        sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
+      }
+    });
+    clearTimeout(room.timeoutId)
+    room.timeoutId = setTimeout(() => {
+      handleTimeLimit(room);
+    }, 15000);
+  }
   room.players.forEach((player) => {
     if (player.ws && player.ws.readyState === WebSocket.OPEN) {
       const personalRoomState = getRoomStateForApi(room, player.id);
@@ -431,7 +450,8 @@ function handleStartGame(ws: UnoWebSocket, room: UnoRoom): void {
   room.currentCard = initialCard;
   updatePlayerTurns(room);
   
-  broadcastRoomState(room);
+  broadcastRoomState(room, true);
+
   log(`Game started in room ${room.id}`);
 }
 
@@ -465,7 +485,6 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   if (!isValidPlay(card, room.currentCard!)) {
     return sendToUnoClient(ws, "ERROR", { message: "Jogada inválida" });
   }
-  
   // Remove card from hand
   player.hand.splice(cardIndex, 1);
   player.yelledUno = false;
@@ -488,15 +507,16 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   
   // Apply card effects
   let skipNext = false;
-  
+  let blockNext = false
   switch (card.value) {
     case 'Skip':
       skipNext = true;
+      blockNext = true;
       break;
       
     case 'Reverse':
       room.gameDirection = room.gameDirection === 'clockwise' ? 'anticlockwise' : 'clockwise';
-      if (room.players.size === 2) {
+      if (room.players.size > 2) {
         skipNext = true;
       }
       break;
@@ -528,13 +548,24 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   // Advance turn
   if (room.additionalState !== 'CHOOSING_COLOR') {
     let nextPlayer = getNextPlayer(room);
+    
     if (skipNext && nextPlayer) {
       nextPlayer = getNextPlayer(room);
     }
     if (nextPlayer) {
       room.currentPlayerId = nextPlayer.id;
     }
+
     updatePlayerTurns(room);
+
+    if(blockNext){
+      blockNext = false;
+      nextPlayer = getNextPlayer(room);
+      if (nextPlayer) {
+        room.currentPlayerId = nextPlayer.id;
+      }
+      updatePlayerTurns(room);
+    }
   }
   
   broadcastRoomState(room);
@@ -565,7 +596,7 @@ function handleBuyCard(ws: UnoWebSocket, room: UnoRoom): void {
   player.hand.push(newCard);
   player.alreadyBought = true;
   
-  broadcastRoomState(room);
+  broadcastRoomState(room, true);
 }
 
 function handleSkipRound(ws: UnoWebSocket, room: UnoRoom): void {
@@ -634,7 +665,7 @@ function handleChooseColor(ws: UnoWebSocket, room: UnoRoom, payload: { color: st
   }
   updatePlayerTurns(room);
   
-  broadcastRoomState(room);
+  broadcastRoomState(room, true);
 }
 
 function handleCloseRoom(ws: UnoWebSocket, room: UnoRoom): void {
@@ -798,3 +829,62 @@ export {
   UnoPlayer,
   RoomStateForApi
 };
+
+
+function handleTimeLimit(room: UnoRoom): void {
+  if (room.status !== 'IN_GAME') {
+    return;
+  }
+
+  const currentPlayer = room.players.get(room.currentPlayerId!);
+  if (!currentPlayer) {
+    return;
+  }
+
+  // Handle color choosing timeout
+  if (room.additionalState === 'CHOOSING_COLOR') {
+    const colors = ['red', 'blue', 'green', 'yellow'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    if (room.currentCard) {
+      room.currentCard.chosenColor = randomColor;
+    }
+    room.additionalState = null;
+    
+    log(`Time limit reached - automatically chose color ${randomColor} for player ${currentPlayer.name}`);
+    
+    // Advance to next player
+    const nextPlayer = getNextPlayer(room);
+    if (nextPlayer) {
+      room.currentPlayerId = nextPlayer.id;
+    }
+    updatePlayerTurns(room);
+    broadcastRoomState(room);
+    return;
+  }
+
+  // If player hasn't bought a card, buy one for them
+  if (!currentPlayer.alreadyBought && currentPlayer.hand) {
+    const newCard = getRandomCard();
+    currentPlayer.hand.push(newCard);
+    currentPlayer.alreadyBought = true;
+    
+    log(`Time limit reached - bought card for player ${currentPlayer.name}`);
+  }
+
+  // Reset UNO status if they had yelled it
+  if (currentPlayer.yelledUno) {
+    currentPlayer.yelledUno = false;
+  }
+
+  // Advance to next player
+  const nextPlayer = getNextPlayer(room);
+  if (nextPlayer) {
+    room.currentPlayerId = nextPlayer.id;
+  }
+
+  updatePlayerTurns(room);
+  broadcastRoomState(room);
+  
+  log(`Turn advanced due to time limit in room ${room.id}`);
+}
