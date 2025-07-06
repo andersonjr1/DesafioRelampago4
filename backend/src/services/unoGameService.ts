@@ -280,6 +280,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
 function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
   log(`Broadcasting room state for room ${room.id}`);
   if(timeLimit){
+    console.log("TimeLimit reached")
     const startTimestamp = Date.now();
     const entTimestamp = startTimestamp + 15000;
     room.players.forEach((player) => {
@@ -290,6 +291,7 @@ function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
           startTimestamp,
           entTimestamp
         }
+        console.log("COM TEMPO")
         sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
       }
     });

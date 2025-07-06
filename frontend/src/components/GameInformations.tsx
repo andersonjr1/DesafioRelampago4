@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import GameDirection from "./GameDirection";
 import GameColor from "./GameColor";
+import RoundTimer from "./RoundTimer";
 
 // --- Interfaces ---
 interface GameInformationsProps {
@@ -12,6 +13,8 @@ interface GameInformationsProps {
     value: string;
     chosenColor?: string;
   };
+  startTime: number;
+  endTime: number;
 }
 
 // --- Styled Components ---
@@ -29,6 +32,8 @@ const InformationsContainer = styled(Box)(({ theme }) => ({
 const GameInformations: React.FC<GameInformationsProps> = ({
   gameDirection,
   gameColor,
+  startTime,
+  endTime,
 }) => {
   return (
     <InformationsContainer>
@@ -38,6 +43,7 @@ const GameInformations: React.FC<GameInformationsProps> = ({
         value={gameColor.value}
         chosenColor={gameColor.chosenColor}
       />
+      <RoundTimer startTime={startTime} endTime={endTime} />
     </InformationsContainer>
   );
 };
