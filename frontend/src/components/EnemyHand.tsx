@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import EnemyProfile from "./EnemyProfile";
 import type { Theme } from "@mui/material/styles";
+import type { CSSObject } from "@mui/system";
 
 // --- Interfaces ---
 interface EnemyHandProps {
@@ -14,77 +15,86 @@ interface EnemyHandProps {
   playerId: string;
   currentPlayerId: string;
 }
-interface StyleProps {
-  theme: Theme;
-  position: number;
+interface HandContainerProps {
+  playerPosition: number;    // renomeado aqui
   isCurrentPlayer: boolean;
 }
 
 // --- Styled Components ---
-const HandContainer = styled(Box)<{
-  position: number;
-  isCurrentPlayer: boolean;
-}>(({ theme, position, isCurrentPlayer }: StyleProps) => {
-  const baseStyles = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing(2),
-    border: isCurrentPlayer
-      ? `3px solid ${theme.palette.primary.main}`
-      : "3px solid transparent",
-    borderRadius: theme.spacing(1),
-    backgroundColor: isCurrentPlayer
-      ? "rgba(25, 118, 210, 0.1)"
-      : "transparent",
-    transition: "all 0.3s ease-in-out",
-    boxShadow: isCurrentPlayer ? `0 0 15px rgba(25, 118, 210, 0.3)` : "none",
-  };
+const HandContainer = styled(Box, {
+  shouldForwardProp: (prop: string) =>
+    prop !== "playerPosition" && prop !== "isCurrentPlayer",
+})<HandContainerProps>(
+  ({
+    theme,
+    playerPosition,
+    isCurrentPlayer,
+  }: { theme: Theme } & HandContainerProps): CSSObject => {
+    const baseStyles: CSSObject = {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding:
+        typeof theme.spacing(2) === "number"
+          ? `${theme.spacing(2)}px`
+          : theme.spacing(2),
+      border: isCurrentPlayer
+        ? `3px solid ${theme.palette.primary.main}`
+        : "3px solid transparent",
+      borderRadius:
+        typeof theme.spacing(1) === "number"
+          ? `${theme.spacing(1)}px`
+          : theme.spacing(1),
+      backgroundColor: isCurrentPlayer
+        ? "rgba(25, 118, 210, 0.1)"
+        : "transparent",
+      transition: "all 0.3s ease-in-out",
+      boxShadow: isCurrentPlayer ? `0 0 15px rgba(25, 118, 210, 0.3)` : "none",
+    };
 
-  switch (position) {
-    case 3: // Topo
-      return {
-        ...baseStyles,
-        position: "fixed" as const,
-        top: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 100,
-      };
-    case 2: // Esquerda vertical
-      return {
-        ...baseStyles,
-        position: "fixed" as const,
-        left: 0,
-        top: "50%",
-        transform: "translateY(-50%)",
-        zIndex: 100,
-      };
-    case 4: // Direita vertical
-      return {
-        ...baseStyles,
-        position: "fixed" as const,
-        right: 0,
-        top: "50%",
-        transform: "translateY(-50%)",
-        zIndex: 100,
-      };
-    default:
-      return {
-        ...baseStyles,
-      };
+    switch (playerPosition) {
+      case 3:
+        return {
+          ...baseStyles,
+          position: "fixed",
+          top: "0px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 100,
+        };
+      case 2:
+        return {
+          ...baseStyles,
+          position: "fixed",
+          left: "0px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 100,
+        };
+      case 4:
+        return {
+          ...baseStyles,
+          position: "fixed",
+          right: "0px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 100,
+        };
+      default:
+        return baseStyles;
+    }
   }
-});
+);
 
-const DisconnectedOverlay = styled(Box)(({ theme }) => ({
+const DisconnectedOverlay = styled(Box)(({ theme }: { theme: Theme }) => ({
   position: "relative",
   "&::before": {
     content: '"Desconectado"',
     position: "absolute",
-    top: 10,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: "10px",
+    left: "0px",
+    right: "0px",
+    bottom: "0px",
     backgroundColor: "rgba(0, 0, 0, 0.8)",
     color: "red",
     display: "flex",
@@ -93,7 +103,10 @@ const DisconnectedOverlay = styled(Box)(({ theme }) => ({
     fontSize: theme.typography.body1.fontSize,
     fontWeight: "bold",
     zIndex: 1001,
-    borderRadius: theme.spacing(1),
+    borderRadius:
+      typeof theme.spacing(1) === "number"
+        ? `${theme.spacing(1)}px`
+        : theme.spacing(1),
     pointerEvents: "none",
   },
 }));
@@ -107,11 +120,11 @@ const EnemyHand: React.FC<EnemyHandProps> = ({
   position,
   playerId,
   currentPlayerId,
-}) => {
+}: EnemyHandProps) => {
   const isCurrentPlayer = playerId === currentPlayerId;
 
   const content = (
-    <HandContainer position={position} isCurrentPlayer={isCurrentPlayer}>
+    <HandContainer playerPosition={position} isCurrentPlayer={isCurrentPlayer}>
       <EnemyProfile
         name={name}
         cardCount={cardCount}

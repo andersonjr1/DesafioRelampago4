@@ -180,7 +180,7 @@ const Login: React.FC = () => {
         <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
           <StyledTextField
             fullWidth
-            label="Email ou Nome de Usuário"
+            label="Email"
             name="email"
             type="email"
             value={formData.email}

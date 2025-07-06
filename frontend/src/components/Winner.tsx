@@ -37,7 +37,7 @@ const WinnerContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
 }));
 
-const TrophyIcon = styled(EmojiEvents)(({ theme }) => ({
+const TrophyIcon = styled(EmojiEvents)(() => ({
   fontSize: "4rem",
   color: "#ffd700", // Gold color
   filter: "drop-shadow(0 4px 8px rgba(255, 215, 0, 0.3))",
@@ -60,12 +60,7 @@ const CelebrationIcon = styled(Celebration)(({ theme }) => ({
   },
 }));
 
-const WinnerTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: "bold",
-  fontSize: "2rem",
-  color: theme.palette.primary.main,
-  textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-}));
+// REMOVIDO WinnerTitle POIS NÃO ESTÁ SENDO USADO
 
 const WinnerName = styled(Typography)(({ theme }) => ({
   fontWeight: "bold",

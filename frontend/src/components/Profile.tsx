@@ -10,9 +10,6 @@ import {
   Box,
 } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
-import { Theme } from "@mui/material/styles";
-
-// Ícones
 import StyleIcon from "@mui/icons-material/Style";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CampaignIcon from "@mui/icons-material/Campaign";
@@ -25,56 +22,43 @@ interface MyProfileProps {
   yelledUno: boolean;
 }
 
-// --- Animações ---
-// Nova animação de pulso para o estado de AVISO (amarelo)
+// --- Animação ---
 const pulseWarningAnimation = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 167, 38, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 167, 38, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 167, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0); }
 `;
 
-// --- Styled Components (Reutilizados do padrão anterior) ---
+// --- Styled Components ---
 type ProfileStatus = "warning" | "normal";
 
 const ProfileCard = styled(Card, {
-  shouldForwardProp: (prop: string) => prop !== "status",
-})<{ status: ProfileStatus }>(
-  ({ theme, status }: { theme: Theme; status: ProfileStatus }) => ({
-    position: "relative",
-    minWidth: 180,
-    textAlign: "center",
-    border: "2px solid",
-    transition:
-      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.3s",
-    // Cor da borda dinâmica adaptada para o perfil do jogador
-    borderColor:
-      status === "warning"
-        ? theme.palette.warning.main
-        : theme.palette.grey[300],
-    // Animação de pulso para o estado de aviso
-    animation:
-      status === "warning" ? `${pulseWarningAnimation} 2s infinite` : "none",
-    "&:hover": {
-      transform: "scale(1.05)",
-      boxShadow: theme.shadows[10],
-    },
-  })
-);
+  shouldForwardProp: (prop) => prop !== "status",
+})<{ status: ProfileStatus }>(({ theme, status }) => ({
+  position: "relative",
+  minWidth: 180,
+  textAlign: "center",
+  border: "2px solid",
+  transition:
+    "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.3s",
+  borderColor:
+    status === "warning" ? theme.palette.warning.main : theme.palette.grey[300],
+  animation:
+    status === "warning" ? `${pulseWarningAnimation} 2s infinite` : "none",
+  "&:hover": {
+    transform: "scale(1.05)",
+    boxShadow: theme.shadows[10],
+  },
+}));
 
-const PlayerName = styled(Typography)(({ theme }: Theme) => ({
+const PlayerName = styled(Typography)(({ theme: _theme }) => ({
   fontWeight: "bold",
   textOverflow: "ellipsis",
   overflow: "hidden",
   whiteSpace: "nowrap",
 }));
 
-const CardCountBox = styled(Box)(({ theme }: Theme) => ({
+const CardCountBox = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -82,14 +66,14 @@ const CardCountBox = styled(Box)(({ theme }: Theme) => ({
   margin: theme.spacing(1.5, 0),
 }));
 
-const CardCountText = styled(Typography)(({ theme }: Theme) => ({
+const CardCountText = styled(Typography)(({ theme }) => ({
   fontSize: "2rem",
   fontWeight: "bold",
   lineHeight: 1,
   color: theme.palette.text.primary,
 }));
 
-const UnoStatusChip = styled(Chip)(({ theme }: Theme) => ({
+const UnoStatusChip = styled(Chip)(({ theme }) => ({
   marginTop: theme.spacing(1),
   fontWeight: "bold",
   color: theme.palette.success.contrastText,
@@ -101,13 +85,13 @@ const MyProfile: React.FC<MyProfileProps> = ({
   name,
   cardCount,
   yelledUno,
-}: MyProfileProps) => {
+}) => {
   const { sendMessage } = useWebSocketContext();
+
   const handleYellUno = () => {
     sendMessage(JSON.stringify({ type: "YELL_UNO" }));
   };
 
-  // Lógica de status adaptada para o perfil do jogador
   const getStatus = (): ProfileStatus => {
     if (cardCount === 1 && !yelledUno) return "warning";
     return "normal";

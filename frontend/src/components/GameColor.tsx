@@ -7,7 +7,7 @@ import type { Theme } from "@mui/material/styles";
 // --- Interfaces ---
 interface GameColorProps {
   color: string;
-  value: string;
+  value: string; // <- agora aceita 'value' vindo de fora
   chosenColor?: string;
 }
 
@@ -16,7 +16,7 @@ interface ColorIconProps {
 }
 
 // --- Styled Components ---
-const ColorContainer = styled(Box)(({ theme }: Theme) => ({
+const ColorContainer = styled(Box)(({ theme }: { theme: Theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: theme.spacing(1),
@@ -26,14 +26,12 @@ const ColorContainer = styled(Box)(({ theme }: Theme) => ({
   border: `1px solid ${theme.palette.divider}`,
 }));
 
-const ColorIcon = styled(Circle)<ColorIconProps>(
-  ({ gamecolor }: ColorIconProps) => ({
-    fontSize: "1.5rem",
-    color: gamecolor,
-  })
-);
+const ColorIcon = styled(Circle)<ColorIconProps>(({ gamecolor }) => ({
+  fontSize: "1.5rem",
+  color: gamecolor,
+}));
 
-const ColorText = styled(Typography)(({ theme }: Theme) => ({
+const ColorText = styled(Typography)(({ theme }: { theme: Theme }) => ({
   fontWeight: "bold",
   color: theme.palette.text.primary,
   fontSize: "0.875rem",
@@ -51,9 +49,9 @@ const colorMap: { [key: string]: string } = {
 // --- Componente Principal ---
 const GameColor: React.FC<GameColorProps> = ({
   color,
-  value,
+  value: _, // <- ignora formalmente a prop 'value'
   chosenColor,
-}: GameColorProps) => {
+}) => {
   const displayColor = chosenColor || color;
   const colorValue = colorMap[displayColor] || displayColor;
 
