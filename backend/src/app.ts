@@ -6,27 +6,26 @@ import url from "url";
 import stream from "stream";
 import cookieParser from "cookie-parser";
 import * as cookie from "cookie";
+import cors from "cors";
 
 import { verifyTokenForWebSocket } from "./utils/verifyTokenForwebSocket";
-
 import { router } from "./routes";
 import { config } from "./config";
-import cors from "cors";
 import {
   initializeUnoGameService,
   UnoWebSocket,
 } from "./services/unoGameService";
-import { Console } from "console";
 
 const app = express();
 const PORT = config.PORT || 3000;
+const allowedOrigins = ["http://localhost:5173", "http://localhost:8080"];
 
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:8080",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
