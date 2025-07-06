@@ -1,6 +1,5 @@
 import express from "express";
 import http from "http";
-import path from "path";
 import { WebSocketServer } from "ws";
 import url from "url";
 import stream from "stream";
@@ -29,8 +28,6 @@ app.use(
     credentials: true,
   })
 );
-
-app.use(express.static(path.join(__dirname, "../../frontend")));
 
 // Routes
 app.use(router);
