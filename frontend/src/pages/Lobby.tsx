@@ -6,6 +6,7 @@ import JoinRoom from "../components/JoinRoom";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../contexts/UserContext";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -34,11 +35,54 @@ const LogoutButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+const ContinueGameButton = styled(Button)(({ theme }) => ({
+  padding: theme.spacing(1.5, 4),
+  fontSize: "1.1rem",
+  fontWeight: "bold",
+  borderRadius: theme.spacing(3),
+  textTransform: "none",
+  background: "linear-gradient(45deg, #4CAF50 30%, #45a049 90%)",
+  color: "white",
+  border: "none",
+  boxShadow: "0 4px 12px 0 rgba(76, 175, 80, .3)",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    background: "linear-gradient(45deg, #45a049 30%, #4CAF50 90%)",
+    boxShadow: "0 6px 16px 0 rgba(76, 175, 80, .4)",
+    transform: "translateY(-2px)",
+  },
+}));
+
 const Lobby: React.FC = () => {
   const [errorJoin, setErrorJoin] = React.useState("");
   const [errorCreate, setErrorCreate] = React.useState("");
+  const [currentRoomId, setCurrentRoomId] = React.useState<string | null>(null);
   const navigate = useNavigate();
   const { clearUser } = useUserContext();
+
+  // Check for existing game session on mount
+  React.useEffect(() => {
+    const checkExistingGame = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/lobby/playing", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.roomId) {
+            setCurrentRoomId(data.roomId);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking existing game:", err);
+      }
+    };
+
+    checkExistingGame();
+  }, []);
 
   const handleCreateRoom = async (roomName: string) => {
     try {
@@ -72,6 +116,12 @@ const Lobby: React.FC = () => {
       setErrorJoin(
         "Erro de conexão. Verifique sua internet e tente novamente."
       );
+    }
+  };
+
+  const handleContinueGame = () => {
+    if (currentRoomId) {
+      navigate(`/room/${currentRoomId}`);
     }
   };
 
@@ -128,6 +178,26 @@ const Lobby: React.FC = () => {
           Crie uma nova sala ou entre em uma sala existente
         </Typography>
       </StyledHeader>
+
+      {/* Continue Game Button */}
+      {currentRoomId && (
+        <Box sx={{ mb: 4, textAlign: "center" }}>
+          <Paper sx={{ p: 3, backgroundColor: "#f8f9fa" }}>
+            <Typography variant="h6" gutterBottom color="primary">
+              Você tem um jogo em andamento!
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Clique no botão abaixo para continuar sua partida.
+            </Typography>
+            <ContinueGameButton
+              startIcon={<PlayArrowIcon />}
+              onClick={handleContinueGame}
+            >
+              Continuar Jogo
+            </ContinueGameButton>
+          </Paper>
+        </Box>
+      )}
 
       {/* Grid com os componentes */}
       <Grid container spacing={4} sx={{ mt: 2 }}>
