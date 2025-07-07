@@ -230,6 +230,12 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     player.disconnected = false;
     log(`Player ${ws.playerName} connected/reconnected to room ${roomId}`, { playerId: ws.playerId });
 
+    const deletePlayerFromDisconnected = disconnectedPlayers.get(ws.playerId);
+
+    if(deletePlayerFromDisconnected){
+      disconnectedPlayers.delete(ws.playerId);
+    }
+
     if (isReconnection) {
       // Notify other players about reconnection
       broadcastToRoom(room, {
@@ -499,7 +505,15 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   
   // Check win condition
   if (player.hand.length === 0) {
-    room.status = 'FINISHED';
+    room.status = 'WAITING';
+    room.players.forEach(player => {
+      if(player.disconnected){
+        room.players.delete(player.id);
+        disconnectedPlayers.delete(player.id);
+        log(`Player ${player.name} disconnected from room ${room.id}`, { playerId: player.id });
+      }
+    })
+
     broadcastToRoom(room, {
       type: 'UPDATE_ROOM',
       payload: {
@@ -814,6 +828,12 @@ export function initializeUnoGameService(wss: WebSocketServer): void {
     ws.currentRoomId = roomId;
     
     log(`New WebSocket connection for player ${ws.playerName} to room ${roomId}`);
+
+    const deletePlayerFromDisconnected = disconnectedPlayers.get(ws.playerId);
+
+    if(deletePlayerFromDisconnected){
+      disconnectedPlayers.delete(ws.playerId);
+    }
     
     playerConnections.set(ws.playerId, ws);
 
@@ -843,6 +863,9 @@ export function initializeUnoGameService(wss: WebSocketServer): void {
   });
 }
 
+const isPlayerDisconnectedForApi = (playerId: string): string | undefined => {
+  return disconnectedPlayers.get(playerId);
+}
 
 
 // Export API functions
@@ -850,6 +873,7 @@ export {
   createRoomForApi,
   getAvailableRoomsForApi,
   joinRoomForApi,
+  isPlayerDisconnectedForApi,
   UnoRoom,
   UnoPlayer,
   RoomStateForApi
@@ -913,3 +937,4 @@ function handleTimeLimit(room: UnoRoom): void {
   
   log(`Turn advanced due to time limit in room ${room.id}`);
 }
+

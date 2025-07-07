@@ -12,5 +12,6 @@ router.post("/auth/login", authController.login);
 router.post("/auth/logout", authenticateToken, authController.logout);
 router.get("/session", authenticateToken, authController.checkLogin);
 router.post("/lobby/rooms", authenticateToken, lobbyController.createRoom);
+router.get("/lobby/playing", authenticateToken, lobbyController.isPlayerDisconnected);
 
 export { router };
