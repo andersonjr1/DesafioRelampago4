@@ -10,6 +10,7 @@ import ColorChoiceModal from "../components/ColorChoiceModal";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
 import { ReadyState } from "react-use-websocket";
+import { useNavigate } from "react-router-dom";
 import Winner from "../components/Winner";
 
 interface Card {
@@ -75,12 +76,20 @@ const Room: React.FC = () => {
   const [showError, setShowError] = React.useState<boolean>(false);
   const [endTime, setEndTime] = React.useState<number>(0);
   const [startTime, setStartTime] = React.useState<number>(0);
+  const navigate = useNavigate();
 
+  const errorAndGoBack = () => {
+    setShowError(true);
+    setErrorMessage("Ocorreu um erro interno no servidor.");
+    setTimeout(() => {
+      navigate(`/lobby`);
+    }, 3000);
+  };
   // Start WebSocket connection when component mounts and disconnect when it unmounts
   React.useEffect(() => {
     console.log("Room component mounted. Connecting to WebSocket...");
     if (code) {
-      connect(code);
+      connect(code, errorAndGoBack);
     }
 
     // Return a cleanup function to be called when the component unmounts
