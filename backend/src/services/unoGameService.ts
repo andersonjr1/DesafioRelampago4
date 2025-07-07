@@ -20,7 +20,7 @@ type UnoMessageType =
   | 'ACCUSE_NO_UNO'
   | 'CHOOSE_COLOR'
   | 'RECONNECT'
-  | 'DISCONNECT';
+  | 'DISCONNECT_VOLUNTARY';
 
 type UnoServerMessageType =
   | 'CREATE_ROOM'
@@ -30,7 +30,6 @@ type UnoServerMessageType =
   | 'UPDATE_ROOM'
   | 'ERROR'
   | 'PLAYER_RECONNECTED'
-  | 'PLAYER_DISCONNECTED'
   | 'GAME_FINISHED';
 
 type GameStatus = "WAITING" | "IN_GAME" | "FINISHED";
@@ -168,6 +167,7 @@ const unoCards: Card[] = [
 // Game state
 const rooms = new Map<string, UnoRoom>();
 const playerConnections = new Map<string, UnoWebSocket>();
+const disconnectedPlayers = new Map<string, string>();
 
 function getRandomCard(): Card {
   return unoCards[Math.floor(Math.random() * unoCards.length)];
@@ -217,7 +217,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
 
   if (!room) {
     log(`Connection attempt to non-existent room: ${roomId}`, { playerId: ws.playerId });
-    sendToUnoClient(ws, "ERROR", { message: "Sala não encontrada ou já foi fechada." });
+    sendToUnoClient(ws, "ERROR", { message: "Sala não encontrada ou já foi fechada.", action: "LEAVE_ROOM" });
     ws.close();
     return;
   }
@@ -229,6 +229,12 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     player.ws = ws;
     player.disconnected = false;
     log(`Player ${ws.playerName} connected/reconnected to room ${roomId}`, { playerId: ws.playerId });
+
+    const deletePlayerFromDisconnected = disconnectedPlayers.get(ws.playerId);
+
+    if(deletePlayerFromDisconnected){
+      disconnectedPlayers.delete(ws.playerId);
+    }
 
     if (isReconnection) {
       // Notify other players about reconnection
@@ -245,19 +251,19 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     // New player joining
     if (isPlayerInAnyRoom(ws.playerId)) {
       log(`Player ${ws.playerName} tried to join room ${roomId} but is already in another room`, { playerId: ws.playerId });
-      sendToUnoClient(ws, "ERROR", { message: "Você já está em outra sala. Saia da sala atual para poder entrar em uma nova." });
+      sendToUnoClient(ws, "ERROR", { message: "Você já está em outra sala. Saia da sala atual para poder entrar em uma nova.", action: "LEAVE_ROOM" });
       ws.close();
       return;
     }
 
     if (room.players.size >= 4) {
-      sendToUnoClient(ws, "ERROR", { message: "Sala está cheia" });
+      sendToUnoClient(ws, "ERROR", { message: "Sala está cheia", action: "LEAVE_ROOM" });
       ws.close();
       return;
     }
 
     if (room.status !== 'WAITING') {
-      sendToUnoClient(ws, "ERROR", { message: "Jogo já iniciado" });
+      sendToUnoClient(ws, "ERROR", { message: "Jogo já iniciado", action: "LEAVE_ROOM" });
       ws.close();
       return;
     }
@@ -417,6 +423,9 @@ function handleClientMessage(ws: UnoWebSocket, data: UnoClientMessage): void {
       if (player.id === room.ownerId) handleCloseRoom(ws, room);
       else sendToUnoClient(ws, "ERROR", { message: "Apenas o dono da sala pode fechá-la." });
       break;
+    case "DISCONNECT_VOLUNTARY":
+      handlePlayerVoluntaryDisconnect(ws);
+      break;
   }
 }
 
@@ -496,7 +505,15 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   
   // Check win condition
   if (player.hand.length === 0) {
-    room.status = 'FINISHED';
+    room.status = 'WAITING';
+    room.players.forEach(player => {
+      if(player.disconnected){
+        room.players.delete(player.id);
+        disconnectedPlayers.delete(player.id);
+        log(`Player ${player.name} disconnected from room ${room.id}`, { playerId: player.id });
+      }
+    })
+
     broadcastToRoom(room, {
       type: 'UPDATE_ROOM',
       payload: {
@@ -693,24 +710,48 @@ function handlePlayerDisconnect(ws: UnoWebSocket): void {
   const room = rooms.get(ws.currentRoomId);
   if (!room) return;
 
+  if (room.status !== 'IN_GAME') {
+
+    if(room?.ownerId === ws.playerId){
+      handleCloseRoom(ws, room);
+    } else {
+      const player = room.players.delete(ws.playerId);
+      if (player) {
+        log(`Player ${ws.playerName} involuntary disconnected from room ${room.id}`);
+      }
+      broadcastRoomState(room);
+    }
+    
+    return;
+  }
+
   const player = room.players.get(ws.playerId);
   if (player) {
     player.ws = null;
     player.disconnected = true;
     log(`Player ${ws.playerName} disconnected from room ${room.id}`);
 
-    // Notify other players about disconnection
-    broadcastToRoom(room, {
-      type: 'PLAYER_DISCONNECTED',
-      payload: {
-        playerId: ws.playerId,
-        playerName: ws.playerName,
-        message: `${ws.playerName} se desconectou.`
-      }
-    }, ws.playerId);
-
     broadcastRoomState(room);
+
+    disconnectedPlayers.set(ws.playerId, ws.currentRoomId);
   }
+
+}
+
+function handlePlayerVoluntaryDisconnect(ws: UnoWebSocket): void {
+  const room = rooms.get(ws.currentRoomId);
+  if (!room) return;
+
+  if (room.status === 'IN_GAME') {
+    return sendToUnoClient(ws, "ERROR", { message: "O jogo já começou, não é possível sair" });
+  }
+
+  const player = room.players.delete(ws.playerId);
+  if (player) {
+    log(`Player ${ws.playerName} voluntary disconnected from room ${room.id}`);
+  }
+
+  broadcastRoomState(room);
 }
 
 // API functions for external use
@@ -793,6 +834,12 @@ export function initializeUnoGameService(wss: WebSocketServer): void {
     ws.currentRoomId = roomId;
     
     log(`New WebSocket connection for player ${ws.playerName} to room ${roomId}`);
+
+    const deletePlayerFromDisconnected = disconnectedPlayers.get(ws.playerId);
+
+    if(deletePlayerFromDisconnected){
+      disconnectedPlayers.delete(ws.playerId);
+    }
     
     playerConnections.set(ws.playerId, ws);
 
@@ -822,11 +869,17 @@ export function initializeUnoGameService(wss: WebSocketServer): void {
   });
 }
 
+const isPlayerDisconnectedForApi = (playerId: string): string | undefined => {
+  return disconnectedPlayers.get(playerId);
+}
+
+
 // Export API functions
 export {
   createRoomForApi,
   getAvailableRoomsForApi,
   joinRoomForApi,
+  isPlayerDisconnectedForApi,
   UnoRoom,
   UnoPlayer,
   RoomStateForApi
@@ -890,3 +943,4 @@ function handleTimeLimit(room: UnoRoom): void {
   
   log(`Turn advanced due to time limit in room ${room.id}`);
 }
+

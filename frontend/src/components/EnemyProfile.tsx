@@ -65,7 +65,7 @@ const ProfileCard = styled(Card, {
   },
 }));
 
-const PlayerName = styled(Typography)(({ theme: _theme }) => ({
+const PlayerName = styled(Typography)(() => ({
   fontWeight: "bold",
   textOverflow: "ellipsis",
   overflow: "hidden",

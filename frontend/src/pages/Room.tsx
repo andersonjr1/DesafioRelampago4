@@ -10,6 +10,7 @@ import ColorChoiceModal from "../components/ColorChoiceModal";
 import { useWebSocketContext } from "../contexts/WebSocketContext";
 import { useUserContext } from "../contexts/UserContext";
 import { ReadyState } from "react-use-websocket";
+import { useNavigate } from "react-router-dom";
 import Winner from "../components/Winner";
 
 interface Card {
@@ -75,12 +76,20 @@ const Room: React.FC = () => {
   const [showError, setShowError] = React.useState<boolean>(false);
   const [endTime, setEndTime] = React.useState<number>(0);
   const [startTime, setStartTime] = React.useState<number>(0);
+  const navigate = useNavigate();
 
+  const errorAndGoBack = () => {
+    setShowError(true);
+    setErrorMessage("Ocorreu um erro interno no servidor.");
+    setTimeout(() => {
+      navigate(`/lobby`);
+    }, 3000);
+  };
   // Start WebSocket connection when component mounts and disconnect when it unmounts
   React.useEffect(() => {
     console.log("Room component mounted. Connecting to WebSocket...");
     if (code) {
-      connect(code);
+      connect(code, errorAndGoBack);
     }
 
     // Return a cleanup function to be called when the component unmounts
@@ -108,8 +117,11 @@ const Room: React.FC = () => {
 
         switch (data.type) {
           case "DELETE_ROOM":
-            console.log("Room deleted:");
-            // Handle room deletion - maybe redirect to lobby
+            setErrorMessage("Sala foi excluida!");
+            setShowError(true);
+            setTimeout(() => {
+              navigate(`/lobby`);
+            }, 3000);
             break;
           case "START_GAME":
             console.log("Game started:", data);
@@ -157,6 +169,11 @@ const Room: React.FC = () => {
             console.error("Server error:", data.payload.message);
             setErrorMessage(data.payload.message);
             setShowError(true);
+            if (data.payload.action === "LEAVE_ROOM") {
+              setTimeout(() => {
+                navigate(`/lobby`);
+              }, 3000);
+            }
             break;
           default:
             console.log("Unknown message type:", data.type, data);

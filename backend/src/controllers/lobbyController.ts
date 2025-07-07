@@ -22,3 +22,19 @@ export const createRoom = (req: AuthRequest, res: Response): void => {
     return;
   }
 };
+
+export const isPlayerDisconnected = (req: AuthRequest, res: Response): void => {
+  const { id, name } = req.user!;
+  try {
+    const roomId = unoGameService.isPlayerDisconnectedForApi(id);
+    if(roomId){
+      res.status(200).json({ message: "Jogador está em uma sala em jogo", roomId });
+      return;
+    }
+    res.status(200).json({ message: "Jogador não está em uma sala" });
+  } catch (error: any) {
+    console.error("Erro ao verificar se o jogador está desconectado:", error);
+    res.status(500).json({ message: error.message });
+    return;
+  }
+}
