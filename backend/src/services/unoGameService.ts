@@ -217,7 +217,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
 
   if (!room) {
     log(`Connection attempt to non-existent room: ${roomId}`, { playerId: ws.playerId });
-    sendToUnoClient(ws, "ERROR", { message: "Sala não encontrada ou já foi fechada." });
+    sendToUnoClient(ws, "ERROR", { message: "Sala não encontrada ou já foi fechada.", action: "LEAVE_ROOM" });
     ws.close();
     return;
   }
@@ -245,19 +245,19 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     // New player joining
     if (isPlayerInAnyRoom(ws.playerId)) {
       log(`Player ${ws.playerName} tried to join room ${roomId} but is already in another room`, { playerId: ws.playerId });
-      sendToUnoClient(ws, "ERROR", { message: "Você já está em outra sala. Saia da sala atual para poder entrar em uma nova." });
+      sendToUnoClient(ws, "ERROR", { message: "Você já está em outra sala. Saia da sala atual para poder entrar em uma nova.", action: "LEAVE_ROOM" });
       ws.close();
       return;
     }
 
     if (room.players.size >= 4) {
-      sendToUnoClient(ws, "ERROR", { message: "Sala está cheia" });
+      sendToUnoClient(ws, "ERROR", { message: "Sala está cheia", action: "LEAVE_ROOM" });
       ws.close();
       return;
     }
 
     if (room.status !== 'WAITING') {
-      sendToUnoClient(ws, "ERROR", { message: "Jogo já iniciado" });
+      sendToUnoClient(ws, "ERROR", { message: "Jogo já iniciado", action: "LEAVE_ROOM" });
       ws.close();
       return;
     }

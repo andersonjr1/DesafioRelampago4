@@ -117,8 +117,11 @@ const Room: React.FC = () => {
 
         switch (data.type) {
           case "DELETE_ROOM":
-            console.log("Room deleted:");
-            // Handle room deletion - maybe redirect to lobby
+            setErrorMessage("Sala foi excluida!");
+            setShowError(true);
+            setTimeout(() => {
+              navigate(`/lobby`);
+            }, 3000);
             break;
           case "START_GAME":
             console.log("Game started:", data);
@@ -166,6 +169,11 @@ const Room: React.FC = () => {
             console.error("Server error:", data.payload.message);
             setErrorMessage(data.payload.message);
             setShowError(true);
+            if (data.payload.action === "LEAVE_ROOM") {
+              setTimeout(() => {
+                navigate(`/lobby`);
+              }, 3000);
+            }
             break;
           default:
             console.log("Unknown message type:", data.type, data);
