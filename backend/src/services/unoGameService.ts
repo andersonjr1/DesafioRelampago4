@@ -1,4 +1,6 @@
 import { WebSocket, WebSocketServer } from "ws";
+import {insertGame, addPlayerToGame} from "../repository/gamesRepository"
+
 
 // Extend WebSocket class to add custom properties
 export class UnoWebSocket extends WebSocket {
@@ -466,7 +468,7 @@ function handleStartGame(ws: UnoWebSocket, room: UnoRoom): void {
   log(`Game started in room ${room.id}`);
 }
 
-function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }): void {
+async function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }): Promise<void> {
   const player = room.players.get(ws.playerId);
   if (!player) return;
   
@@ -506,6 +508,29 @@ function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: Card }
   // Check win condition
   if (player.hand.length === 0) {
     room.status = 'WAITING';
+    
+    // Save game to database
+    try {
+      // Insert the game record
+      const gameId = await insertGame(player.id);
+      // Add all players to the game record
+      if(gameId){
+        const playerPromises = Array.from(room.players.values()).map(p => 
+        addPlayerToGame(gameId.id, p.id)
+        );
+        await Promise.all(playerPromises);
+      }
+      
+      
+      log(`Game ${gameId} saved to database with winner ${player.name}`, { 
+        gameId, 
+        winnerId: player.id, 
+        players: Array.from(room.players.keys()) 
+      });
+    } catch (error) {
+      log(`Error saving game to database`, { error, roomId: room.id, winnerId: player.id });
+    }
+    
     room.players.forEach(player => {
       if(player.disconnected){
         room.players.delete(player.id);
