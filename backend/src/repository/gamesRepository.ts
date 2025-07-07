@@ -16,7 +16,7 @@ const insertGame = async (winnerId?: string): Promise<Game | null> => {
         id: rows[0].id,
         gameId: rows[0].id,
         playerId: "", // Will be populated when getting game with players
-        players: { playerName: "", playerId: "" }, // Will be populated when getting game with players
+        players: [], // Empty array initially
         winnerId: rows[0].winnerId,
         date: rows[0].createdAt
       };
@@ -79,7 +79,7 @@ const findGameById = async (gameId: string): Promise<Game | null> => {
       id: gameData.game_id,
       gameId: gameData.game_id,
       playerId: gameData.playerid || "",
-      players: players[0] || { playerName: "", playerId: "" }, // Taking first player as primary
+      players: players, // Now correctly an array
       winnerId: gameData.winnerid,
       date: gameData.createdat
     };
@@ -113,22 +113,35 @@ const findGamesByPlayerId = async (playerId: string): Promise<Game[]> => {
     );
     
     // Group by game_id to handle multiple players per game
-    const gamesMap = new Map<string, Game>();
+    const gamesMap = new Map<string, { game: Omit<Game, 'players'>, players: Players[] }>();
     
     rows.forEach(row => {
       if (!gamesMap.has(row.game_id)) {
         gamesMap.set(row.game_id, {
-          id: row.game_id,
-          gameId: row.game_id,
-          playerId: row.playerid,
-          players: { playerName: row.playername, playerId: row.playerid },
-          winnerId: row.winnerid,
-          date: row.createdat
+          game: {
+            id: row.game_id,
+            gameId: row.game_id,
+            playerId: row.playerid,
+            winnerId: row.winnerid,
+            date: row.createdat
+          },
+          players: []
         });
       }
+      
+      // Add player to the game's players array
+      const gameEntry = gamesMap.get(row.game_id)!;
+      gameEntry.players.push({
+        playerName: row.playername,
+        playerId: row.playerid
+      });
     });
     
-    return Array.from(gamesMap.values());
+    // Convert map to array of Game objects
+    return Array.from(gamesMap.values()).map(entry => ({
+      ...entry.game,
+      players: entry.players
+    }));
   } catch (error) {
     throw error;
   } finally {

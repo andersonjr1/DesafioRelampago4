@@ -62,7 +62,7 @@ interface Game {
   id: string;
   gameId: string;
   playerId: string;
-  players: Players;
+  players: Players[];
   winnerId: string;
   date: Date;
 }

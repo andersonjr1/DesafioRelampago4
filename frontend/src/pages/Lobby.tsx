@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../contexts/UserContext";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import HistoryIcon from "@mui/icons-material/History";
 
 const StyledHeader = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -31,6 +32,23 @@ const LogoutButton = styled(Button)(({ theme }) => ({
   transition: "background 0.2s, box-shadow 0.25s",
   "&:hover": {
     background: "linear-gradient(45deg, #FE6B8B 60%, #FF8E53 100%)",
+    boxShadow: "0 8px 24px 0 rgba(0, 0, 0, .1)",
+  },
+}));
+
+const HistoryButton = styled(Button)(({ theme }) => ({
+  padding: theme.spacing(1.2, 3),
+  fontSize: "1rem",
+  fontWeight: "bold",
+  borderRadius: theme.spacing(3),
+  textTransform: "none",
+  background: "linear-gradient(45deg, #9C27B0 30%, #673AB7 90%)",
+  color: "white",
+  border: "none",
+  boxShadow: "0 2px 8px 0 rgba(156, 39, 176, .12)",
+  transition: "background 0.2s, box-shadow 0.25s",
+  "&:hover": {
+    background: "linear-gradient(45deg, #9C27B0 60%, #673AB7 100%)",
     boxShadow: "0 8px 24px 0 rgba(0, 0, 0, .1)",
   },
 }));
@@ -125,6 +143,10 @@ const Lobby: React.FC = () => {
     }
   };
 
+  const handleGameHistory = () => {
+    navigate("/game-history");
+  };
+
   const handleLogout = async () => {
     try {
       await fetch("http://localhost:3000/auth/logout", {
@@ -148,8 +170,13 @@ const Lobby: React.FC = () => {
             top: 16,
             right: 16,
             zIndex: 2,
+            display: "flex",
+            gap: 1,
           }}
         >
+          <HistoryButton startIcon={<HistoryIcon />} onClick={handleGameHistory}>
+            Histórico
+          </HistoryButton>
           <LogoutButton startIcon={<LogoutIcon />} onClick={handleLogout}>
             Sair
           </LogoutButton>

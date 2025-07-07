@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Lobby from "./pages/Lobby";
 import Room from "./pages/Room";
+import GameHistory from "./pages/GameHistory";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { UserProvider, useUserContext } from "./contexts/UserContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -53,6 +54,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Lobby />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/game-history"
+        element={
+          <ProtectedRoute>
+            <GameHistory />
           </ProtectedRoute>
         }
       />
