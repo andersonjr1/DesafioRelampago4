@@ -4,6 +4,7 @@ import * as usersController from "../controllers/usersController";
 import * as authController from "../controllers/authController";
 import { authenticateToken } from "../middleware/authMiddleware";
 import * as lobbyController from "../controllers/lobbyController";
+import * as gameController from "../controllers/gameController";
 
 const router = Router();
 
@@ -13,5 +14,6 @@ router.post("/auth/logout", authenticateToken, authController.logout);
 router.get("/session", authenticateToken, authController.checkLogin);
 router.post("/lobby/rooms", authenticateToken, lobbyController.createRoom);
 router.get("/lobby/playing", authenticateToken, lobbyController.isPlayerDisconnected);
+router.get("/games", authenticateToken, gameController.getGames);
 
 export { router };

@@ -58,4 +58,18 @@ interface Room {
   players: Player[];
 }
 
-export { User, ApiResponse, AuthRequest, Room };
+interface Game {
+  id: string;
+  gameId: string;
+  playerId: string;
+  players: Players[];
+  winnerId: string;
+  date: Date;
+}
+
+interface Players {
+  playerName: string;
+  playerId: string;
+}
+
+export { User, ApiResponse, AuthRequest, Room, Game, Players };
