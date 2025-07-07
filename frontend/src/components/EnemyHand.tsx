@@ -2,6 +2,7 @@ import React from "react";
 import { Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import EnemyProfile from "./EnemyProfile";
+import WifiOffIcon from "@mui/icons-material/WifiOff";
 import type { Theme } from "@mui/material/styles";
 import type { CSSObject } from "@mui/system";
 
@@ -16,7 +17,7 @@ interface EnemyHandProps {
   currentPlayerId: string;
 }
 interface HandContainerProps {
-  playerPosition: number;    // renomeado aqui
+  playerPosition: number;
   isCurrentPlayer: boolean;
 }
 
@@ -86,32 +87,7 @@ const HandContainer = styled(Box, {
   }
 );
 
-const DisconnectedOverlay = styled(Box)(({ theme }: { theme: Theme }) => ({
-  position: "relative",
-  "&::before": {
-    content: '"Desconectado"',
-    position: "absolute",
-    top: "10px",
-    left: "0px",
-    right: "0px",
-    bottom: "0px",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    color: "red",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: theme.typography.body1.fontSize,
-    fontWeight: "bold",
-    zIndex: 1001,
-    borderRadius:
-      typeof theme.spacing(1) === "number"
-        ? `${theme.spacing(1)}px`
-        : theme.spacing(1),
-    pointerEvents: "none",
-  },
-}));
-
-// --- Componente Principal ---
+// --- Main Component ---
 const EnemyHand: React.FC<EnemyHandProps> = ({
   name,
   cardCount,
@@ -120,25 +96,49 @@ const EnemyHand: React.FC<EnemyHandProps> = ({
   position,
   playerId,
   currentPlayerId,
-}: EnemyHandProps) => {
+}) => {
   const isCurrentPlayer = playerId === currentPlayerId;
 
-  const content = (
+  return (
     <HandContainer playerPosition={position} isCurrentPlayer={isCurrentPlayer}>
-      <EnemyProfile
-        name={name}
-        cardCount={cardCount}
-        yelledUno={yelledUno}
-        id={playerId}
-      />
+      {/* This Box acts as a positioning context for the overlay */}
+      <Box sx={{ position: "relative", display: "flex" }}>
+        <EnemyProfile
+          name={name}
+          cardCount={cardCount}
+          yelledUno={yelledUno}
+          id={playerId}
+        />
+        {/* Conditionally render the disconnected overlay */}
+        {disconnected && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(30, 30, 30, 0.6)",
+              backdropFilter: "blur(2px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1,
+              // Ensure the overlay has the same border radius as its container
+              borderRadius: (theme) =>
+                typeof theme.spacing(1) === "number"
+                  ? `${theme.spacing(1)}px`
+                  : theme.spacing(1),
+            }}
+          >
+            <WifiOffIcon
+              sx={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "2.5rem" }}
+            />
+          </Box>
+        )}
+      </Box>
     </HandContainer>
   );
-
-  if (disconnected) {
-    return <DisconnectedOverlay>{content}</DisconnectedOverlay>;
-  }
-
-  return content;
 };
 
 export default EnemyHand;
