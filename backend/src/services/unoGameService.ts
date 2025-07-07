@@ -612,7 +612,7 @@ async function handlePlayCard(ws: UnoWebSocket, room: UnoRoom, payload: { card: 
     }
   }
   
-  broadcastRoomState(room);
+  broadcastRoomState(room, true);
 }
 
 function handleBuyCard(ws: UnoWebSocket, room: UnoRoom): void {
@@ -662,7 +662,7 @@ function handleSkipRound(ws: UnoWebSocket, room: UnoRoom): void {
   }
   
   updatePlayerTurns(room);
-  broadcastRoomState(room);
+  broadcastRoomState(room, true);
 }
 
 function handleYellUno(ws: UnoWebSocket, room: UnoRoom): void {
