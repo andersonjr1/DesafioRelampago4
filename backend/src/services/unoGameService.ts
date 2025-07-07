@@ -711,11 +711,17 @@ function handlePlayerDisconnect(ws: UnoWebSocket): void {
   if (!room) return;
 
   if (room.status !== 'IN_GAME') {
-    const player = room.players.delete(ws.playerId);
-    if (player) {
-      log(`Player ${ws.playerName} voluntary disconnected from room ${room.id}`);
+
+    if(room?.ownerId === ws.playerId){
+      handleCloseRoom(ws, room);
+    } else {
+      const player = room.players.delete(ws.playerId);
+      if (player) {
+        log(`Player ${ws.playerName} involuntary disconnected from room ${room.id}`);
+      }
+      broadcastRoomState(room);
     }
-    broadcastRoomState(room);
+    
     return;
   }
 
