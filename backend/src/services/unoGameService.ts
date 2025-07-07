@@ -20,7 +20,7 @@ type UnoMessageType =
   | 'ACCUSE_NO_UNO'
   | 'CHOOSE_COLOR'
   | 'RECONNECT'
-  | 'DISCONNECT';
+  | 'DISCONNECT_VOLUNTARY';
 
 type UnoServerMessageType =
   | 'CREATE_ROOM'
@@ -30,7 +30,6 @@ type UnoServerMessageType =
   | 'UPDATE_ROOM'
   | 'ERROR'
   | 'PLAYER_RECONNECTED'
-  | 'PLAYER_DISCONNECTED'
   | 'GAME_FINISHED';
 
 type GameStatus = "WAITING" | "IN_GAME" | "FINISHED";
@@ -168,6 +167,7 @@ const unoCards: Card[] = [
 // Game state
 const rooms = new Map<string, UnoRoom>();
 const playerConnections = new Map<string, UnoWebSocket>();
+const disconnectedPlayers = new Map<string, string>();
 
 function getRandomCard(): Card {
   return unoCards[Math.floor(Math.random() * unoCards.length)];
@@ -416,6 +416,9 @@ function handleClientMessage(ws: UnoWebSocket, data: UnoClientMessage): void {
     case "DELETE_ROOM":
       if (player.id === room.ownerId) handleCloseRoom(ws, room);
       else sendToUnoClient(ws, "ERROR", { message: "Apenas o dono da sala pode fechá-la." });
+      break;
+    case "DISCONNECT_VOLUNTARY":
+      handlePlayerVoluntaryDisconnect(ws);
       break;
   }
 }
@@ -693,24 +696,42 @@ function handlePlayerDisconnect(ws: UnoWebSocket): void {
   const room = rooms.get(ws.currentRoomId);
   if (!room) return;
 
+  if (room.status !== 'IN_GAME') {
+    const player = room.players.delete(ws.playerId);
+    if (player) {
+      log(`Player ${ws.playerName} voluntary disconnected from room ${room.id}`);
+    }
+    broadcastRoomState(room);
+    return;
+  }
+
   const player = room.players.get(ws.playerId);
   if (player) {
     player.ws = null;
     player.disconnected = true;
     log(`Player ${ws.playerName} disconnected from room ${room.id}`);
 
-    // Notify other players about disconnection
-    broadcastToRoom(room, {
-      type: 'PLAYER_DISCONNECTED',
-      payload: {
-        playerId: ws.playerId,
-        playerName: ws.playerName,
-        message: `${ws.playerName} se desconectou.`
-      }
-    }, ws.playerId);
-
     broadcastRoomState(room);
+
+    disconnectedPlayers.set(ws.playerId, ws.currentRoomId);
   }
+
+}
+
+function handlePlayerVoluntaryDisconnect(ws: UnoWebSocket): void {
+  const room = rooms.get(ws.currentRoomId);
+  if (!room) return;
+
+  if (room.status === 'IN_GAME') {
+    return sendToUnoClient(ws, "ERROR", { message: "O jogo já começou, não é possível sair" });
+  }
+
+  const player = room.players.delete(ws.playerId);
+  if (player) {
+    log(`Player ${ws.playerName} voluntary disconnected from room ${room.id}`);
+  }
+
+  broadcastRoomState(room);
 }
 
 // API functions for external use
@@ -821,6 +842,8 @@ export function initializeUnoGameService(wss: WebSocketServer): void {
     });
   });
 }
+
+
 
 // Export API functions
 export {

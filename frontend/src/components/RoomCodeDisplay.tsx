@@ -122,7 +122,7 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
   const handleDisconnect = () => {
     // Send DISCONNECT WebSocket message
     console.log(`Disconnecting from room: ${roomCode}`);
-    sendMessage(JSON.stringify({ type: "DISCONNECT" }));
+    sendMessage(JSON.stringify({ type: "DISCONNECT_VOLUNTARY" }));
     navigate("/lobby");
   };
 
