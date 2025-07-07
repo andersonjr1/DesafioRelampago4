@@ -18,17 +18,24 @@ interface GameInformationsProps {
 }
 
 // --- Styled Components ---
+// This container is fixed to the center of the screen and centers its children.
 const InformationsContainer = styled(Box)(({ theme }) => ({
   position: "fixed",
-  top: theme.spacing(2),
-  left: theme.spacing(2),
+  top: "10px",
+  left: "10px",
   display: "flex",
   flexDirection: "column",
-  gap: theme.spacing(1),
+  alignItems: "center", // This centers the items horizontally
+  gap: theme.spacing(2), // A slightly larger gap for better visual spacing
   zIndex: 100,
+  padding: theme.spacing(2),
+  backgroundColor: "rgba(255, 255, 255, 0.8)", // Optional: add a background for better readability
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  backdropFilter: "blur(5px)",
 }));
 
-// --- Componente Principal ---
+// --- Main Component ---
 const GameInformations: React.FC<GameInformationsProps> = ({
   gameDirection,
   gameColor,
