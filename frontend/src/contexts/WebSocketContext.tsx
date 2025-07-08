@@ -100,7 +100,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     // Store the provided callback function in the ref
     onFailureCallback.current = onFailure || null;
     // Set the WebSocket URL to trigger the connection
-    setSocketUrl(`ws://localhost:3000/ws/${code}`);
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    const wsUrl = `${protocol}//${host}/ws/${code}`;
+    setSocketUrl(wsUrl);
   }, []);
 
   // Function to disconnect
