@@ -70,7 +70,7 @@ const RoundTimer: React.FC<RoundTimerProps> = ({ startTime, endTime }) => {
     const interval = setInterval(() => {
       // Consistently check against the current time to prevent drift.
       setTimeLeft(Math.max(0, endTime - Date.now()));
-    }, 1000);
+    }, 500);
 
     // Cleanup the interval when the component unmounts or dependencies change.
     return () => clearInterval(interval);

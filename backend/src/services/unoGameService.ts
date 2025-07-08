@@ -67,6 +67,7 @@ interface UnoRoom {
   additionalState?: AdditionalState;
   players: Map<string, UnoPlayer>;
   timeoutId?: ReturnType<typeof setTimeout>;
+  timeoutExcutionTime?: number;
 }
 
 interface UnoClientMessage {
@@ -244,19 +245,14 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     }
 
     if (isReconnection) {
-      // Notify other players about reconnection
-      broadcastToRoom(
-        room,
-        {
-          type: "PLAYER_RECONNECTED",
-          payload: {
-            playerId: ws.playerId,
-            playerName: ws.playerName,
-            message: `${ws.playerName} reconectou-se!`,
-          },
-        },
-        ws.playerId
-      );
+      const startTimestamp = Date.now();
+      const personalRoomState = getRoomStateForApi(room, player.id);
+      const sentObject = {
+        ...personalRoomState,
+        startTimestamp,
+        entTimestamp: room.timeoutExcutionTime,
+      };
+      sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
     }
   } else {
     // New player joining
@@ -328,6 +324,7 @@ function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
       }
     });
     clearTimeout(room.timeoutId);
+    room.timeoutExcutionTime = entTimestamp;
     room.timeoutId = setTimeout(() => {
       handleTimeLimit(room);
     }, 15000);
