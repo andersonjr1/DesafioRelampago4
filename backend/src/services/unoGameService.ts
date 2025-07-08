@@ -67,6 +67,7 @@ interface UnoRoom {
   additionalState?: AdditionalState;
   players: Map<string, UnoPlayer>;
   timeoutId?: ReturnType<typeof setTimeout>;
+  timeoutExcutionTime?: number;
 }
 
 interface UnoClientMessage {
@@ -244,19 +245,14 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
     }
 
     if (isReconnection) {
-      // Notify other players about reconnection
-      broadcastToRoom(
-        room,
-        {
-          type: "PLAYER_RECONNECTED",
-          payload: {
-            playerId: ws.playerId,
-            playerName: ws.playerName,
-            message: `${ws.playerName} reconectou-se!`,
-          },
-        },
-        ws.playerId
-      );
+      const startTimestamp = Date.now();
+      const personalRoomState = getRoomStateForApi(room, player.id);
+      const sentObject = {
+        ...personalRoomState,
+        startTimestamp,
+        entTimestamp: room.timeoutExcutionTime,
+      };
+      sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
     }
   } else {
     // New player joining
@@ -328,6 +324,7 @@ function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
       }
     });
     clearTimeout(room.timeoutId);
+    room.timeoutExcutionTime = entTimestamp;
     room.timeoutId = setTimeout(() => {
       handleTimeLimit(room);
     }, 15000);
@@ -381,6 +378,10 @@ function getNextPlayer(room: UnoRoom): UnoPlayer | null {
     room.players.get(playerIds[nextIndex])?.disconnected &&
     attempts < playerIds.length
   ) {
+    const player = room.players.get(playerIds[nextIndex])
+    if(player && player.hand){
+      player.hand.push(...dealCards(1))
+    }
     nextIndex = (nextIndex + direction + playerIds.length) % playerIds.length;
     attempts++;
   }
@@ -575,7 +576,19 @@ async function handlePlayCard(
   // Check win condition
   if (player.hand.length === 0) {
     room.status = "WAITING";
+    room.gameDirection = undefined;
+    room.additionalState = undefined;
+    room.currentPlayerId = undefined;
+    room.currentCard = undefined;
 
+    // Deal 7 cards to each player
+    room.players.forEach((player) => {
+      player.hand = undefined;
+      player.alreadyBought = undefined;
+      player.yelledUno = undefined;
+      player.isTheirTurn = undefined;
+      player.alreadyBought = undefined;
+    });
     // Save game to database
     try {
       // Insert the game record

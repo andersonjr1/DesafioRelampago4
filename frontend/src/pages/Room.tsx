@@ -156,6 +156,7 @@ const Room: React.FC = () => {
             if (data.payload.winner) {
               setWinnerName(data.payload.winner);
               setShowWinner(true);
+              setPlayerHand([]);
             }
             if (data.payload.entTimestamp) {
               setEndTime(data.payload.entTimestamp);
