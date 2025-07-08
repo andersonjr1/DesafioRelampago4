@@ -71,6 +71,38 @@ const ActionButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+type GameStatus = "WAITING" | "IN_GAME" | "FINISHED";
+type GameDirection = "clockwise" | "anticlockwise";
+type AdditionalState = "CHOOSING_COLOR" | "PLAYER_DISCONNECTED" | null;
+
+interface Card {
+  color: string;
+  value: string;
+  chosenColor?: string;
+}
+interface RoomStateForApi {
+  id: string;
+  roomName: string;
+  ownerId: string;
+  status: GameStatus;
+  canStart: boolean;
+  currentCard?: Card;
+  gameDirection?: GameDirection;
+  currentPlayerId?: string;
+  additionalState?: AdditionalState;
+  players: {
+    id: string;
+    name: string;
+    cardCount: number;
+    isTheirTurn: boolean;
+    disconnected: boolean;
+    yelledUno: boolean;
+    alreadyBought: boolean;
+    isOnline: boolean;
+  }[];
+  playerHand?: Card[];
+}
+
 interface JoinRoomProps {
   onJoinRoom?: (roomCode: string) => void;
   errorMessage?: string;
@@ -88,12 +120,16 @@ const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom, errorMessage }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!roomCode.trim()) {
+    setError("");
+
+    const trimmedRoom = roomCode.trim();
+
+    if (!trimmedRoom) {
       setError("Por favor, digite o código da sala.");
       return;
     }
 
-    if (roomCode.trim().length < 4) {
+    if (trimmedRoom.length < 4) {
       setError("O código da sala deve ter pelo menos 4 caracteres.");
       return;
     }
@@ -101,17 +137,42 @@ const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom, errorMessage }) => {
     setLoading(true);
 
     try {
-      // Simular entrada na sala
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch("http://localhost:3000/lobby/rooms", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        setError("Erro ao buscar as salas");
+
+        setRoomCode("");
+        return;
+      }
+
+      const roomsData = await response.json();
+      const inputRoomName = trimmedRoom.toLowerCase();
+
+      const foundRoom = roomsData.find(
+        (r: RoomStateForApi) =>
+          r.roomName.trim().toLowerCase() === inputRoomName
+      );
+
+      if (!foundRoom) {
+        setError("Sala não existe");
+
+        setRoomCode("");
+        return;
+      }
 
       if (onJoinRoom) {
-        onJoinRoom(roomCode.trim().toUpperCase());
+        onJoinRoom(trimmedRoom.toUpperCase());
       }
 
       // Limpar o campo após entrar
       setRoomCode("");
     } catch (err) {
       setError("Erro ao entrar na sala. Tente novamente.");
+
+      setRoomCode("");
     } finally {
       setLoading(false);
     }

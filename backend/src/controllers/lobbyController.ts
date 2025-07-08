@@ -15,26 +15,36 @@ export const createRoom = (req: AuthRequest, res: Response): void => {
 
     const room = unoGameService.createRoomForApi(id, name, roomName);
     res.status(201).json(room);
-    return;
   } catch (error: any) {
     console.error("Erro ao criar sala:", error);
-    res.status(400).json({ message: error.message });
-    return;
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const isPlayerDisconnected = (req: AuthRequest, res: Response): void => {
-  const { id, name } = req.user!;
+  const { id } = req.user!;
   try {
     const roomId = unoGameService.isPlayerDisconnectedForApi(id);
-    if(roomId){
-      res.status(200).json({ message: "Jogador está em uma sala em jogo", roomId });
+    if (roomId) {
+      res
+        .status(200)
+        .json({ message: "Jogador está em uma sala em jogo", roomId });
       return;
     }
     res.status(200).json({ message: "Jogador não está em uma sala" });
   } catch (error: any) {
     console.error("Erro ao verificar se o jogador está desconectado:", error);
     res.status(500).json({ message: error.message });
-    return;
   }
-}
+};
+
+export const getAllRooms = (req: AuthRequest, res: Response): void => {
+  try {
+    const result = unoGameService.getAvailableRoomsForApi();
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: "Erro ao listar as salas" });
+  }
+};
