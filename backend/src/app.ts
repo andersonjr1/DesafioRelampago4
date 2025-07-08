@@ -17,7 +17,11 @@ import {
 
 const app = express();
 const PORT = config.PORT || 3000;
-const allowedOrigins = ["http://localhost:5173", "http://localhost:8080"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:8080",
+  `https://${config.LETSENCRYPT_DOMAIN}`,
+];
 
 // Middleware
 app.use(express.json());
@@ -30,7 +34,7 @@ app.use(
 );
 
 // Routes
-app.use(router);
+app.use("/api", router);
 
 // Create HTTP server and WebSocket server
 const server = http.createServer(app);
@@ -97,7 +101,7 @@ server.on(
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`HTTP and WebSocket server running: http://localhost:${PORT}`);
+  console.log(`HTTP e WebSocket rodando na porta ${PORT}`);
 });
 
 app.listen(config.PORT, () =>
