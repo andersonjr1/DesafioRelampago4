@@ -82,7 +82,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch("http://localhost:3000/session", {
+        const res = await fetch("/api/session", {
           credentials: "include",
         });
         if (res.ok) {
@@ -122,7 +122,7 @@ const Login: React.FC = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
