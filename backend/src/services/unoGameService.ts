@@ -575,7 +575,19 @@ async function handlePlayCard(
   // Check win condition
   if (player.hand.length === 0) {
     room.status = "WAITING";
+    room.gameDirection = undefined;
+    room.additionalState = undefined;
+    room.currentPlayerId = undefined;
+    room.currentCard = undefined;
 
+    // Deal 7 cards to each player
+    room.players.forEach((player) => {
+      player.hand = undefined;
+      player.alreadyBought = undefined;
+      player.yelledUno = undefined;
+      player.isTheirTurn = undefined;
+      player.alreadyBought = undefined;
+    });
     // Save game to database
     try {
       // Insert the game record
