@@ -149,11 +149,10 @@ const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom, errorMessage }) => {
       }
 
       const roomsData = await response.json();
-      const inputRoomName = trimmedRoom.toLowerCase();
+      const inputRoomId = trimmedRoom.toLowerCase();
 
       const foundRoom = roomsData.find(
-        (r: RoomStateForApi) =>
-          r.roomName.trim().toLowerCase() === inputRoomName
+        (r: RoomStateForApi) => r.id.trim().toLowerCase() === inputRoomId
       );
 
       if (!foundRoom) {
