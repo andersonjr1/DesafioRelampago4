@@ -378,6 +378,10 @@ function getNextPlayer(room: UnoRoom): UnoPlayer | null {
     room.players.get(playerIds[nextIndex])?.disconnected &&
     attempts < playerIds.length
   ) {
+    const player = room.players.get(playerIds[nextIndex])
+    if(player && player.hand){
+      player.hand.push(...dealCards(1))
+    }
     nextIndex = (nextIndex + direction + playerIds.length) % playerIds.length;
     attempts++;
   }
