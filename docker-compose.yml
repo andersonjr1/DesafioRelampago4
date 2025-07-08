@@ -1,4 +1,37 @@
 services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - game-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    command: >
+      certonly --webroot 
+      --webroot-path=/var/www/certbot 
+      --email ${LETSENCRYPT_EMAIL} 
+      --agree-tos 
+      --no-eff-email 
+      -d ${LETSENCRYPT_DOMAIN} 
+      -d www.${LETSENCRYPT_DOMAIN}
+    networks:
+      - game-network
+
   backend:
     container_name: backend
     build:
@@ -6,7 +39,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./backend/.env
+      - .env
     depends_on:
       - db
     volumes:
