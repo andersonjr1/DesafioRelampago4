@@ -1,7 +1,7 @@
 # node modules locais
 node_modules
 
-# pasta de build
+# pastas de build
 dist
 
 # pastas e arquivos do sistema
