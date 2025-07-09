@@ -137,7 +137,7 @@ const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom, errorMessage }) => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/lobby/rooms", {
+      const response = await fetch("/api/lobby/rooms", {
         credentials: "include",
       });
 

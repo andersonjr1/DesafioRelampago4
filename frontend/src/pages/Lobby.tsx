@@ -82,7 +82,7 @@ const Lobby: React.FC = () => {
   React.useEffect(() => {
     const checkExistingGame = async () => {
       try {
-        const response = await fetch("http://localhost:3000/lobby/playing", {
+        const response = await fetch("/api/lobby/playing", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -105,7 +105,7 @@ const Lobby: React.FC = () => {
   const handleCreateRoom = async (roomName: string) => {
     try {
       setErrorCreate(""); // Clear previous errors
-      const response = await fetch("http://localhost:3000/lobby/rooms", {
+      const response = await fetch("/api/lobby/rooms", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -149,7 +149,7 @@ const Lobby: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:3000/auth/logout", {
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

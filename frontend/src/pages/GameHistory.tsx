@@ -121,7 +121,7 @@ const GameHistory: React.FC = () => {
         setLoading(true);
         setError("");
 
-        const response = await fetch("http://localhost:3000/games", {
+        const response = await fetch("/api/games", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
