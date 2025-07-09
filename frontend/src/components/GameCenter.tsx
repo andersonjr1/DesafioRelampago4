@@ -13,6 +13,7 @@ interface GameCenterProps {
   lastPlayedCard: {
     color: string;
     value: string;
+    chosenColor?: string;
   };
   direction: string;
   onSkipTurn?: () => void; // Prop opcional para o botão "Passar vez"
@@ -153,6 +154,7 @@ const GameCenter: React.FC<GameCenterProps> = ({
         <UnoCardFront
           color={lastPlayedCard.color as UnoColor}
           value={lastPlayedCard.value as UnoValue}
+          chosenColor={lastPlayedCard.chosenColor as UnoColor}
         />
       </DiscardPileWrapper>
 

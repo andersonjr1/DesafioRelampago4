@@ -10,6 +10,7 @@ interface UnoCardProps {
   color: UnoColor;
   value: UnoValue;
   onSelect?: () => void; // Adiciona a propriedade opcional onSelect
+  chosenColor?: UnoColor; // Adiciona a propriedade opcional chosenColor
 }
 
 interface CardContainerProps {
@@ -109,7 +110,18 @@ const CenterValue = styled(Typography, {
 
 // Componente especial para exibir as 4 cores da carta Coringa.
 const WildColorDisplay: React.FC = () => (
-  <Grid container sx={{ width: "80%", height: "80%", zIndex: 1 }}>
+  <Grid
+    container
+    sx={{
+      width: "80%",
+      height: "80%",
+      zIndex: 1,
+      // Add these properties to the container
+      borderRadius: "50%",
+      border: "4px solid white",
+      overflow: "hidden",
+    }}
+  >
     <Grid
       size={{ xs: 6 }}
       sx={{ backgroundColor: colorMap.red, borderTopLeftRadius: "100%" }}
@@ -131,14 +143,21 @@ const WildColorDisplay: React.FC = () => (
 
 // --- Componente Principal ---
 
-const UnoCardFront: React.FC<UnoCardProps> = ({ color, value, onSelect }) => {
+const UnoCardFront: React.FC<UnoCardProps> = ({
+  color,
+  value,
+  onSelect,
+  chosenColor,
+}) => {
   // Define se a carta é uma carta Coringa (que tem o fundo preto).
   const isWild = color === "black";
-  // Obtém a cor de fundo a partir do mapa de cores.
-  const backgroundColor = colorMap[color] || colorMap.black;
+  // Obtém a cor de fundo a partir do mapa de cores, priorizando chosenColor se fornecido
+  const backgroundColor = chosenColor
+    ? colorMap[chosenColor]
+    : colorMap[color] || colorMap.black;
   // Obtém o valor de exibição com símbolos especiais
   const displayValue = getDisplayValue(value);
-
+  console.log(backgroundColor, displayValue);
   return (
     <CardContainer
       cardColor={backgroundColor}
