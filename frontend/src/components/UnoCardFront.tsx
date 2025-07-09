@@ -157,7 +157,6 @@ const UnoCardFront: React.FC<UnoCardProps> = ({
     : colorMap[color] || colorMap.black;
   // Obtém o valor de exibição com símbolos especiais
   const displayValue = getDisplayValue(value);
-  console.log(backgroundColor, displayValue);
   return (
     <CardContainer
       cardColor={backgroundColor}
