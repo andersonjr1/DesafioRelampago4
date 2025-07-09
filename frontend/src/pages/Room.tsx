@@ -17,6 +17,7 @@ interface Card {
   color: string;
   value: string;
   chosenColor?: string;
+  position?: number;
 }
 
 interface Player {
@@ -66,6 +67,7 @@ const Room: React.FC = () => {
   const [playersOrder, setPlayersOrder] = React.useState<number[]>([]);
   const [owner, setOwner] = React.useState<boolean>(false);
   const [currentCard, setCurrentCard] = React.useState<Card>();
+  const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
   const [playerHand, setPlayerHand] = React.useState<Card[]>([]);
   const [winnerName, setWinnerName] = React.useState<string>("");
@@ -74,6 +76,8 @@ const Room: React.FC = () => {
   const [gameDirection, setGameDirection] = React.useState<string>("");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
   const [showError, setShowError] = React.useState<boolean>(false);
+  const [messageText, setMessageText] = React.useState<string>("");
+  const [showMessage, setShowMessage] = React.useState<boolean>(false);
   const [endTime, setEndTime] = React.useState<number>(0);
   const [startTime, setStartTime] = React.useState<number>(0);
   const navigate = useNavigate();
@@ -113,7 +117,6 @@ const Room: React.FC = () => {
     if (lastMessage !== null) {
       try {
         const data = JSON.parse(lastMessage.data);
-        // console.log(data);
 
         switch (data.type) {
           case "DELETE_ROOM":
@@ -135,8 +138,11 @@ const Room: React.FC = () => {
               setOwner(data.payload.ownerId === user.id);
               setPlayersOrder(getPlayerOrder(data.payload.players, user.id));
             }
+            setPlayedCards(data.payload.playedCards);
             setCurrentPlayerId(data.payload.currentPlayerId);
-            setCurrentCard(data.payload.currentCard);
+            setCurrentCard(
+              data.payload.playedCards[data.payload.playedCards.length - 1]
+            );
             setGameDirection(data.payload.gameDirection);
             if (data.payload.playerHand) {
               setPlayerHand(data.payload.playerHand);
@@ -158,11 +164,14 @@ const Room: React.FC = () => {
               setShowWinner(true);
               setPlayerHand([]);
             }
-            if (data.payload.entTimestamp) {
-              setEndTime(data.payload.entTimestamp);
-            }
-            if (data.payload.startTimestamp) {
-              setStartTime(data.payload.startTimestamp);
+            if (data.payload.entTimestamp && data.payload.startTimestamp) {
+              const startTimePC = Date.now();
+              const endTimePC =
+                data.payload.entTimestamp +
+                (startTimePC - data.payload.startTimestamp);
+
+              setEndTime(endTimePC);
+              setStartTime(startTimePC);
             }
 
             break;
@@ -175,6 +184,11 @@ const Room: React.FC = () => {
                 navigate(`/lobby`);
               }, 3000);
             }
+            break;
+          case "MESSAGE":
+            console.log("Server message:", data.payload.message);
+            setMessageText(data.payload.message);
+            setShowMessage(true);
             break;
           default:
             console.log("Unknown message type:", data.type, data);
@@ -189,6 +203,11 @@ const Room: React.FC = () => {
   const handleCloseError = () => {
     setShowError(false);
     setErrorMessage("");
+  };
+
+  const handleCloseMessage = () => {
+    setShowMessage(false);
+    setMessageText("");
   };
 
   const handleSkipTurn = () => {
@@ -252,9 +271,10 @@ const Room: React.FC = () => {
       {currentCard && (
         <>
           <GameCenter
-            lastPlayedCard={currentCard}
+            playedCards={playedCards as Card[]}
             onSkipTurn={handleSkipTurn}
             onSelectCardBack={handleBuyCard}
+            direction={gameDirection}
           />
           <GameInformations
             gameDirection={gameDirection}
@@ -302,6 +322,23 @@ const Room: React.FC = () => {
           sx={{ width: "100%" }}
         >
           {errorMessage}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={showMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseMessage}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ marginTop: "60px" }}
+      >
+        <Alert
+          onClose={handleCloseMessage}
+          severity="info"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {messageText}
         </Alert>
       </Snackbar>
     </>

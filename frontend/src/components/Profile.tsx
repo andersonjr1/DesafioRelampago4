@@ -51,7 +51,7 @@ const ProfileCard = styled(Card, {
   },
 }));
 
-const PlayerName = styled(Typography)(({ theme: _theme }) => ({
+const PlayerName = styled(Typography)(() => ({
   fontWeight: "bold",
   textOverflow: "ellipsis",
   overflow: "hidden",
@@ -92,13 +92,13 @@ const MyProfile: React.FC<MyProfileProps> = ({
     sendMessage(JSON.stringify({ type: "YELL_UNO" }));
   };
 
-  const getStatus = (): ProfileStatus => {
-    if (cardCount === 1 && !yelledUno) return "warning";
-    return "normal";
-  };
+  // const getStatus = (): ProfileStatus => {
+  //   if (cardCount === 1 && !yelledUno) return "warning";
+  //   return "normal";
+  // };
 
-  const status = getStatus();
-  const showYellButton = status === "warning";
+  const status = "normal";
+  // const showYellButton = status === "warning";
 
   return (
     <ProfileCard elevation={2} status={status}>
@@ -123,17 +123,15 @@ const MyProfile: React.FC<MyProfileProps> = ({
             />
           )}
 
-          {showYellButton && (
-            <Button
-              variant="contained"
-              color="warning"
-              size="small"
-              onClick={handleYellUno}
-              startIcon={<CampaignIcon />}
-            >
-              Gritar UNO
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            color="warning"
+            size="small"
+            onClick={handleYellUno}
+            startIcon={<CampaignIcon />}
+          >
+            Gritar UNO
+          </Button>
         </Stack>
       </CardContent>
     </ProfileCard>

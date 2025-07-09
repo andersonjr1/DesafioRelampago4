@@ -4,21 +4,31 @@ import { styled } from "@mui/material/styles";
 import UnoCardFront from "./UnoCardFront"; // Seus componentes de carta
 import UnoCardBack from "./UnoCardBack";
 
+// Import arrow images
+import clockwiseLeft from "../../assets/clockwise-left.png";
+import clockwiseRight from "../../assets/clockwise-right.png";
+import antiClockwiseLeft from "../../assets/anti-clockwise-left.png";
+import antiClockwiseRight from "../../assets/anti-clockwise-right.png";
+
 // --- Types ---
 type UnoColor = "red" | "yellow" | "green" | "blue" | "black";
 type UnoValue = string | number;
 
 // --- Interfaces ---
 interface GameCenterProps {
-  lastPlayedCard: {
-    color: string;
-    value: string;
-  };
+  playedCards: Card[];
+  direction: string;
   onSkipTurn?: () => void; // Prop opcional para o botão "Passar vez"
   onSelectCardBack?: () => void;
 }
 
-// --- Styled Components Modificados ---
+interface Card {
+  color: string;
+  value: string;
+  chosenColor?: string;
+  position?: number;
+}
+// --- Styled Components ---
 
 const CenterContainer = styled(Box)(({ theme }) => ({
   position: "fixed",
@@ -28,14 +38,11 @@ const CenterContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 10,
-  // Adiciona um espaçamento consistente entre os itens do flex (as cartas)
+  zIndex: 10000,
   gap: theme.spacing(4),
 }));
 
-// Wrapper para a carta do baralho (monte de compra)
 const DeckWrapper = styled(Box)({
-  // Bônus: Mantém um leve efeito de inclinação para parecer um monte
   transform: "rotate(-8deg)",
   transition: "transform 0.2s ease-in-out",
   "&:hover": {
@@ -43,28 +50,29 @@ const DeckWrapper = styled(Box)({
   },
 });
 
-// Wrapper para a última carta jogada (monte de descarte)
+// MODIFIED: Wrapper for the discard pile
 const DiscardPileWrapper = styled(Box)({
-  // Adiciona um efeito de hover para dar feedback ao jogador
+  position: "relative", // Set as the positioning context for the cards
+  width: "120px", // Match card width
+  height: "180px", // Match card height
   transition: "transform 0.2s ease-in-out",
   "&:hover": {
     transform: "scale(1.05)",
   },
 });
 
-// Styled component para o botão "Passar vez"
 const SkipTurnButton = styled(Button)(({ theme }) => ({
   position: "absolute",
-  bottom: "-80px",
+  bottom: "-55px",
   left: "50%",
   transform: "translateX(-50%)",
   backgroundColor: theme.palette.warning.main,
   color: theme.palette.warning.contrastText,
   fontWeight: "bold",
-  padding: theme.spacing(0.5, 2), // Reduzido de (1, 3) para (0.5, 2)
-  borderRadius: theme.spacing(2), // Reduzido de 3 para 2
-  fontSize: "0.8rem", // Adicionado para reduzir o tamanho da fonte
-  minWidth: "auto", // Remove largura mínima padrão
+  padding: theme.spacing(0.5, 2),
+  borderRadius: theme.spacing(2),
+  fontSize: "0.8rem",
+  minWidth: "auto",
   transition: "all 0.2s ease-in-out",
   "&:hover": {
     backgroundColor: theme.palette.warning.dark,
@@ -72,38 +80,88 @@ const SkipTurnButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-// --- Componente Principal ---
+const ArrowContainer = styled(Box)({
+  position: "absolute",
+  top: "50%",
+  transform: "translateY(-50%)",
+  width: "50px",
+  height: "150px",
+  zIndex: -1,
+});
+
+const ArrowImage = styled("img")({
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
+});
+
+const DirectionArrows: React.FC<{ direction: string }> = ({ direction }) => {
+  const isClockwise = direction === "clockwise";
+  
+  return (
+    <>
+      <ArrowContainer sx={{ left: "-80px" }}>
+        <ArrowImage 
+          src={isClockwise ? clockwiseLeft : antiClockwiseLeft}
+          alt={`${direction} left arrow`}
+        />
+      </ArrowContainer>
+      <ArrowContainer sx={{ right: "-80px" }}>
+        <ArrowImage 
+          src={isClockwise ? clockwiseRight : antiClockwiseRight}
+          alt={`${direction} right arrow`}
+        />
+      </ArrowContainer>
+    </>
+  );
+};
+
+// --- Main Component ---
 const GameCenter: React.FC<GameCenterProps> = ({
-  lastPlayedCard,
+  playedCards,
+  direction,
   onSkipTurn,
   onSelectCardBack,
 }) => {
+  // To improve performance, we only render the last 10 cards in the pile
+  const visibleCards = playedCards.slice(-10);
+
   return (
     <CenterContainer>
-      {/* Carta do baralho (UnoCardBack) à esquerda */}
+      <DirectionArrows direction={direction} />
+
       <DeckWrapper>
         <UnoCardBack
-          onSelect={
-            onSelectCardBack || (() => console.log("Passar vez clicado"))
-          }
+          onSelect={onSelectCardBack || (() => console.log("Deck clicked"))}
         />
       </DeckWrapper>
 
-      {/* Última carta jogada (UnoCardFront) à direita */}
+      {/* MODIFIED: Discard pile now stacks cards */}
       <DiscardPileWrapper>
-        <UnoCardFront
-          color={lastPlayedCard.color as UnoColor}
-          value={lastPlayedCard.value as UnoValue}
-        />
+        {visibleCards.map((card, index) => (
+          <UnoCardFront
+            // Use a more stable key for React rendering
+            key={`${card.color}-${card.value}-${index}`}
+            color={card.color as UnoColor}
+            value={card.value as UnoValue}
+            chosenColor={card.chosenColor as UnoColor}
+            position={card.position}
+            sxCard={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              // The zIndex ensures cards with a higher index (later in the array) appear on top
+              zIndex: index,
+            }}
+          />
+        ))}
       </DiscardPileWrapper>
 
-      {/* Botão "Passar vez" - agora sempre aparece */}
-      <SkipTurnButton
-        variant="contained"
-        onClick={onSkipTurn || (() => console.log("Passar vez clicado"))}
-      >
-        Passar vez
-      </SkipTurnButton>
+      {onSkipTurn && (
+        <SkipTurnButton variant="contained" onClick={onSkipTurn}>
+          Passar vez
+        </SkipTurnButton>
+      )}
     </CenterContainer>
   );
 };

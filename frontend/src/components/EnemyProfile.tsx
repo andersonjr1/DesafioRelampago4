@@ -103,18 +103,20 @@ const EnemyProfile: React.FC<EnemyProfileProps> = ({
 }) => {
   const { sendMessage } = useWebSocketContext();
   const handleReportUno = () => {
-    sendMessage(JSON.stringify({ type: "ACCUSE_NO_UNO", playerId: id }));
+    sendMessage(
+      JSON.stringify({ type: "ACCUSE_NO_UNO", payload: { playerId: id } })
+    );
   };
 
   // Determina o status do jogador para aplicar estilos dinâmicos
-  const getStatus = (): ProfileStatus => {
-    if (cardCount === 1 && !yelledUno) return "danger";
-    if (cardCount > 0 && cardCount <= 2) return "warning";
-    return "normal";
-  };
+  // const getStatus = (): ProfileStatus => {
+  //   if (cardCount === 1 && !yelledUno) return "danger";
+  //   if (cardCount > 0 && cardCount <= 2) return "warning";
+  //   return "normal";
+  // };
 
-  const status = getStatus();
-  const showReportButton = status === "danger";
+  const status = "normal";
+  // const showReportButton = status === "danger";
 
   return (
     <ProfileCard elevation={2} status={status}>
@@ -139,17 +141,15 @@ const EnemyProfile: React.FC<EnemyProfileProps> = ({
             />
           )}
 
-          {showReportButton && (
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={handleReportUno}
-              startIcon={<CampaignIcon />}
-            >
-              Não gritou UNO!
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            color="error"
+            size="small"
+            onClick={handleReportUno}
+            startIcon={<CampaignIcon />}
+          >
+            Não gritou UNO!
+          </Button>
         </Stack>
       </CardContent>
     </ProfileCard>
