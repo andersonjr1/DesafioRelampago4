@@ -28,7 +28,7 @@ const CenterContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 10,
+  zIndex: 2147483647,
   // Adiciona um espaçamento consistente entre os itens do flex (as cartas)
   gap: theme.spacing(4),
 }));
@@ -55,7 +55,7 @@ const DiscardPileWrapper = styled(Box)({
 // Styled component para o botão "Passar vez"
 const SkipTurnButton = styled(Button)(({ theme }) => ({
   position: "absolute",
-  bottom: "-80px",
+  bottom: "-55px",
   left: "50%",
   transform: "translateX(-50%)",
   backgroundColor: theme.palette.warning.main,
