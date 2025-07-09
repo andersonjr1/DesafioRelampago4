@@ -140,9 +140,11 @@ const Room: React.FC = () => {
             }
             setPlayedCards(data.payload.playedCards);
             setCurrentPlayerId(data.payload.currentPlayerId);
-            setCurrentCard(
-              data.payload.playedCards[data.payload.playedCards.length - 1]
-            );
+            if (data.payload.playedCards) {
+              setCurrentCard(
+                data.payload.playedCards[data.payload.playedCards.length - 1]
+              );
+            }
             setGameDirection(data.payload.gameDirection);
             if (data.payload.playerHand) {
               setPlayerHand(data.payload.playerHand);
@@ -268,7 +270,7 @@ const Room: React.FC = () => {
           />
         );
       })}
-      {currentCard && (
+      {playedCards && currentCard && (
         <>
           <GameCenter
             playedCards={playedCards as Card[]}
