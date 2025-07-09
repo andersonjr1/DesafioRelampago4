@@ -113,7 +113,6 @@ const Room: React.FC = () => {
     if (lastMessage !== null) {
       try {
         const data = JSON.parse(lastMessage.data);
-        // console.log(data);
 
         switch (data.type) {
           case "DELETE_ROOM":
@@ -158,11 +157,14 @@ const Room: React.FC = () => {
               setShowWinner(true);
               setPlayerHand([]);
             }
-            if (data.payload.entTimestamp) {
-              setEndTime(data.payload.entTimestamp);
-            }
-            if (data.payload.startTimestamp) {
-              setStartTime(data.payload.startTimestamp);
+            if (data.payload.entTimestamp && data.payload.startTimestamp) {
+              const startTimePC = Date.now();
+              const endTimePC =
+                data.payload.entTimestamp +
+                (startTimePC - data.payload.startTimestamp);
+
+              setEndTime(endTimePC);
+              setStartTime(startTimePC);
             }
 
             break;
