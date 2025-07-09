@@ -74,6 +74,8 @@ const Room: React.FC = () => {
   const [gameDirection, setGameDirection] = React.useState<string>("");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
   const [showError, setShowError] = React.useState<boolean>(false);
+  const [messageText, setMessageText] = React.useState<string>("");
+  const [showMessage, setShowMessage] = React.useState<boolean>(false);
   const [endTime, setEndTime] = React.useState<number>(0);
   const [startTime, setStartTime] = React.useState<number>(0);
   const navigate = useNavigate();
@@ -178,6 +180,11 @@ const Room: React.FC = () => {
               }, 3000);
             }
             break;
+          case "MESSAGE":
+            console.log("Server message:", data.payload.message);
+            setMessageText(data.payload.message);
+            setShowMessage(true);
+            break;
           default:
             console.log("Unknown message type:", data.type, data);
             break;
@@ -191,6 +198,11 @@ const Room: React.FC = () => {
   const handleCloseError = () => {
     setShowError(false);
     setErrorMessage("");
+  };
+
+  const handleCloseMessage = () => {
+    setShowMessage(false);
+    setMessageText("");
   };
 
   const handleSkipTurn = () => {
@@ -305,6 +317,23 @@ const Room: React.FC = () => {
           sx={{ width: "100%" }}
         >
           {errorMessage}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={showMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseMessage}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ marginTop: "60px" }}
+      >
+        <Alert
+          onClose={handleCloseMessage}
+          severity="info"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {messageText}
         </Alert>
       </Snackbar>
     </>

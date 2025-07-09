@@ -470,6 +470,9 @@ function handleClientMessage(ws: UnoWebSocket, data: UnoClientMessage): void {
     case "YELL_UNO":
       handleYellUno(ws, room);
       break;
+    case "ACCUSE_NO_UNO":
+      handleAccuseNoUno(ws, room, data.payload);
+      break;
     case "CHOOSE_COLOR":
       handleChooseColor(ws, room, data.payload);
       break;
@@ -759,6 +762,12 @@ function handleYellUno(ws: UnoWebSocket, room: UnoRoom): void {
   const player = room.players.get(ws.playerId);
   if (!player) return;
 
+  if (room.status != "IN_GAME") {
+    return sendToUnoClient(ws, "ERROR", {
+      message: "O jogo não começou!",
+    });
+  }
+
   if (!player.hand || player.hand.length !== 1) {
     return sendToUnoClient(ws, "ERROR", {
       message: "Você só pode gritar UNO quando tiver exatamente 1 carta",
@@ -768,12 +777,74 @@ function handleYellUno(ws: UnoWebSocket, room: UnoRoom): void {
   player.yelledUno = true;
 
   broadcastToRoom(room, {
-    type: "UPDATE_ROOM",
+    type: "MESSAGE",
     payload: {
       message: `${player.name} gritou UNO!`,
-      ...getRoomStateForApi(room),
     },
   });
+
+  broadcastRoomState(room);
+}
+
+function handleAccuseNoUno(
+  ws: UnoWebSocket,
+  room: UnoRoom,
+  payload: { playerId: string }
+): void {
+  const accuser = room.players.get(ws.playerId);
+  if (!accuser) return;
+
+  const { playerId } = payload;
+  const accusedPlayer = room.players.get(playerId);
+
+  if (room.status != "IN_GAME") {
+    return sendToUnoClient(ws, "ERROR", {
+      message: "O jogo não começou!",
+    });
+  }
+
+  if (!accusedPlayer) {
+    return sendToUnoClient(ws, "ERROR", {
+      message: "Jogador não encontrado",
+    });
+  }
+
+  if (!accusedPlayer.hand) {
+    return sendToUnoClient(ws, "ERROR", {
+      message: "Erro no estado do jogo",
+    });
+  }
+
+  // Check if the accused player has exactly one card and hasn't yelled UNO
+  if (accusedPlayer.hand.length === 1 && !accusedPlayer.yelledUno) {
+    // Penalize the accused player with 2 additional cards
+    accusedPlayer.hand.push(...dealCards(2));
+    
+    broadcastToRoom(room, {
+      type: "MESSAGE",
+      payload: {
+        message: `${accuser.name} acusou ${accusedPlayer.name} de não gritar UNO! ${accusedPlayer.name} comprou 2 cartas.`,
+      },
+    });
+    
+    log(`Player ${accusedPlayer.name} was accused by ${accuser.name} for not yelling UNO and received 2 penalty cards`);
+  } else {
+    // False accusation - accuser gets penalized instead
+    if (accuser.hand) {
+      accuser.hand.push(...dealCards(1));
+    }
+    
+    broadcastToRoom(room, {
+      type: "MESSAGE",
+      payload: {
+        message: `${accuser.name} fez uma acusação falsa! ${accuser.name} comprou 1 carta.`,
+      },
+    });
+    
+    log(`Player ${accuser.name} made a false accusation against ${accusedPlayer.name} and received 1 penalty card`);
+  }
+
+  broadcastRoomState(room);
 }
 
 function handleChooseColor(

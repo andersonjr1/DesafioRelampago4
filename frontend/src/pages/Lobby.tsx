@@ -174,7 +174,10 @@ const Lobby: React.FC = () => {
             gap: 1,
           }}
         >
-          <HistoryButton startIcon={<HistoryIcon />} onClick={handleGameHistory}>
+          <HistoryButton
+            startIcon={<HistoryIcon />}
+            onClick={handleGameHistory}
+          >
             Histórico
           </HistoryButton>
           <LogoutButton startIcon={<LogoutIcon />} onClick={handleLogout}>
