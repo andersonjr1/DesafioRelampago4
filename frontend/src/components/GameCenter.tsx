@@ -14,6 +14,7 @@ interface GameCenterProps {
     color: string;
     value: string;
   };
+  direction: string;
   onSkipTurn?: () => void; // Prop opcional para o botão "Passar vez"
   onSelectCardBack?: () => void;
 }
@@ -28,7 +29,7 @@ const CenterContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 2147483647,
+  zIndex: 10000,
   // Adiciona um espaçamento consistente entre os itens do flex (as cartas)
   gap: theme.spacing(4),
 }));
@@ -72,19 +73,77 @@ const SkipTurnButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+const ArrowContainer = styled(Box)({
+  position: "absolute",
+  top: "50%",
+  transform: "translateY(-50%)",
+  width: "50px",
+  height: "150px",
+  zIndex: -1, // Coloca as setas atrás das cartas, se necessário
+});
+
+const ArrowSvg = styled("svg")({
+  width: "100%",
+  height: "100%",
+  overflow: "visible",
+  "& path": {
+    fill: "none",
+    stroke: "black",
+    strokeWidth: 4.5,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  },
+});
+
+// Paths SVG para as setas
+const ARROW_PATHS = {
+  clockwise: {
+    left: "M 40 125 C 20 95, 20 55, 40 25 L 32 40 M 40 25 L 48 40",
+    right: "M 10 25 C 30 55, 30 95, 10 125 L 18 110 M 10 125 L 2 110",
+  },
+  anticlockwise: {
+    left: "M 40 25 C 20 55, 20 95, 40 125 L 32 110 M 40 125 L 48 110",
+    right: "M 10 125 C 30 95, 30 55, 10 25 L 18 40 M 10 25 L 2 40",
+  },
+};
+
+const DirectionArrows: React.FC<{ direction: string }> = ({ direction }) => {
+  const paths =
+    ARROW_PATHS[direction as keyof typeof ARROW_PATHS] || ARROW_PATHS.clockwise;
+
+  return (
+    <>
+      <ArrowContainer sx={{ left: "-80px" }}>
+        <ArrowSvg viewBox="0 0 50 150">
+          <path d={paths.left} />
+        </ArrowSvg>
+      </ArrowContainer>
+      <ArrowContainer sx={{ right: "-80px" }}>
+        <ArrowSvg viewBox="0 0 50 150">
+          <path d={paths.right} />
+        </ArrowSvg>
+      </ArrowContainer>
+    </>
+  );
+};
+
 // --- Componente Principal ---
 const GameCenter: React.FC<GameCenterProps> = ({
   lastPlayedCard,
+  direction,
   onSkipTurn,
   onSelectCardBack,
 }) => {
   return (
     <CenterContainer>
+      {/* Indicador de direção adicionado aqui */}
+      <DirectionArrows direction={direction} />
+
       {/* Carta do baralho (UnoCardBack) à esquerda */}
       <DeckWrapper>
         <UnoCardBack
           onSelect={
-            onSelectCardBack || (() => console.log("Passar vez clicado"))
+            onSelectCardBack || (() => console.log("Carta do baralho clicada"))
           }
         />
       </DeckWrapper>
@@ -97,7 +156,7 @@ const GameCenter: React.FC<GameCenterProps> = ({
         />
       </DiscardPileWrapper>
 
-      {/* Botão "Passar vez" - agora sempre aparece */}
+      {/* Botão "Passar vez" */}
       <SkipTurnButton
         variant="contained"
         onClick={onSkipTurn || (() => console.log("Passar vez clicado"))}

@@ -36,6 +36,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     minWidth: "400px",
     maxWidth: "500px",
   },
+  zIndex: 10001,
 }));
 
 const ColorGrid = styled(Box)(({ theme }) => ({

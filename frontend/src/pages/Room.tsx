@@ -255,6 +255,7 @@ const Room: React.FC = () => {
             lastPlayedCard={currentCard}
             onSkipTurn={handleSkipTurn}
             onSelectCardBack={handleBuyCard}
+            direction={gameDirection}
           />
           <GameInformations
             gameDirection={gameDirection}
