@@ -4,6 +4,12 @@ import { styled } from "@mui/material/styles";
 import UnoCardFront from "./UnoCardFront"; // Seus componentes de carta
 import UnoCardBack from "./UnoCardBack";
 
+// Import arrow images
+import clockwiseLeft from "../../assets/clockwise-left.png";
+import clockwiseRight from "../../assets/clockwise-right.png";
+import antiClockwiseLeft from "../../assets/anti-clockwise-left.png";
+import antiClockwiseRight from "../../assets/anti-clockwise-right.png";
+
 // --- Types ---
 type UnoColor = "red" | "yellow" | "green" | "blue" | "black";
 type UnoValue = string | number;
@@ -83,44 +89,28 @@ const ArrowContainer = styled(Box)({
   zIndex: -1,
 });
 
-const ArrowSvg = styled("svg")({
+const ArrowImage = styled("img")({
   width: "100%",
   height: "100%",
-  overflow: "visible",
-  "& path": {
-    fill: "none",
-    stroke: "rgba(0, 0, 0, 0.7)",
-    strokeWidth: 4.5,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-  },
+  objectFit: "contain",
 });
 
-const ARROW_PATHS = {
-  clockwise: {
-    left: "M 40 125 C 20 95, 20 55, 40 25 L 32 40 M 40 25 L 48 40",
-    right: "M 10 25 C 30 55, 30 95, 10 125 L 18 110 M 10 125 L 2 110",
-  },
-  anticlockwise: {
-    left: "M 40 25 C 20 55, 20 95, 40 125 L 32 110 M 40 125 L 48 110",
-    right: "M 10 125 C 30 95, 30 55, 10 25 L 18 40 M 10 25 L 2 40",
-  },
-};
-
 const DirectionArrows: React.FC<{ direction: string }> = ({ direction }) => {
-  const paths =
-    ARROW_PATHS[direction as keyof typeof ARROW_PATHS] || ARROW_PATHS.clockwise;
+  const isClockwise = direction === "clockwise";
+  
   return (
     <>
       <ArrowContainer sx={{ left: "-80px" }}>
-        <ArrowSvg viewBox="0 0 50 150">
-          <path d={paths.left} />
-        </ArrowSvg>
+        <ArrowImage 
+          src={isClockwise ? clockwiseLeft : antiClockwiseLeft}
+          alt={`${direction} left arrow`}
+        />
       </ArrowContainer>
       <ArrowContainer sx={{ right: "-80px" }}>
-        <ArrowSvg viewBox="0 0 50 150">
-          <path d={paths.right} />
-        </ArrowSvg>
+        <ArrowImage 
+          src={isClockwise ? clockwiseRight : antiClockwiseRight}
+          alt={`${direction} right arrow`}
+        />
       </ArrowContainer>
     </>
   );

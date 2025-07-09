@@ -102,7 +102,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     // Set the WebSocket URL to trigger the connection
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws/${code}`;
+    const wsUrl = `}${protocol}//${host}/ws/${code}}`;
     setSocketUrl(wsUrl);
   }, []);
 
