@@ -82,11 +82,14 @@ const Lobby: React.FC = () => {
   React.useEffect(() => {
     const checkExistingGame = async () => {
       try {
-        const response = await fetch("/api/lobby/playing", {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await fetch(
+          "http://localhost:3000/api/lobby/playing",
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();

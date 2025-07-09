@@ -41,6 +41,7 @@ interface Card {
   color: string;
   value: string;
   chosenColor?: string;
+  position?: number;
 }
 
 interface UnoPlayer {
@@ -61,7 +62,7 @@ interface UnoRoom {
   roomName: string;
   canStart: boolean;
   status?: GameStatus;
-  currentCard?: Card;
+  playedCards?: Card[];
   gameDirection?: GameDirection;
   currentPlayerId?: string;
   additionalState?: AdditionalState;
@@ -81,7 +82,8 @@ interface RoomStateForApi {
   ownerId: string;
   status: GameStatus;
   canStart: boolean;
-  currentCard?: Card;
+  playedCards?: Card[];
+
   gameDirection?: GameDirection;
   currentPlayerId?: string;
   additionalState?: AdditionalState;
@@ -412,7 +414,7 @@ function getRoomStateForApi(
     ownerId: room.ownerId,
     status: room.status || "WAITING",
     canStart: room.canStart,
-    currentCard: room.currentCard,
+    playedCards: room.playedCards,
     gameDirection: room.gameDirection,
     currentPlayerId: room.currentPlayerId,
     additionalState: room.additionalState,
@@ -522,8 +524,8 @@ function handleStartGame(ws: UnoWebSocket, room: UnoRoom): void {
     initialCard.color === "black" ||
     ["Skip", "Reverse", "Draw Two"].includes(initialCard.value)
   );
-
-  room.currentCard = initialCard;
+  room.playedCards = [];
+  room.playedCards.push({...initialCard, position: Math.floor(Math.random() * 10) + 1})
   updatePlayerTurns(room);
 
   broadcastRoomState(room, true);
@@ -564,17 +566,16 @@ async function handlePlayCard(
       message: "Você não possui esta carta",
     });
   }
-
-  // Check if play is valid
-  if (!isValidPlay(card, room.currentCard!)) {
+  if(room.playedCards){
+    // Check if play is valid
+  if (!isValidPlay(card, room.playedCards[room.playedCards?.length - 1]!)) {
     return sendToUnoClient(ws, "ERROR", { message: "Jogada inválida" });
   }
   // Remove card from hand
   player.hand.splice(cardIndex, 1);
   player.yelledUno = false;
 
-  // Update current card
-  room.currentCard = { ...card };
+  room.playedCards.push({...card, position: Math.floor(Math.random() * 10) + 1});
 
   // Check win condition
   if (player.hand.length === 0) {
@@ -582,7 +583,7 @@ async function handlePlayCard(
     room.gameDirection = undefined;
     room.additionalState = undefined;
     room.currentPlayerId = undefined;
-    room.currentCard = undefined;
+    room.playedCards = undefined;
 
     // Deal 7 cards to each player
     room.players.forEach((player) => {
@@ -702,6 +703,7 @@ async function handlePlayCard(
   }
 
   broadcastRoomState(room, true);
+  }
 }
 
 function handleBuyCard(ws: UnoWebSocket, room: UnoRoom): void {
@@ -866,8 +868,8 @@ function handleChooseColor(
     return sendToUnoClient(ws, "ERROR", { message: "Cor inválida" });
   }
 
-  if (room.currentCard) {
-    room.currentCard.chosenColor = color;
+  if (room.playedCards) {
+    room.playedCards[room.playedCards.length - 1].chosenColor = color;
   }
   room.additionalState = null;
 
@@ -1097,8 +1099,8 @@ function handleTimeLimit(room: UnoRoom): void {
     const colors = ["red", "blue", "green", "yellow"];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-    if (room.currentCard) {
-      room.currentCard.chosenColor = randomColor;
+    if (room.playedCards) {
+      room.playedCards[room.playedCards.length - 1].chosenColor = randomColor;
     }
     room.additionalState = null;
 

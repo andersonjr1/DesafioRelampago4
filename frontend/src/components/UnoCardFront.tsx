@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography, Grid } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import type { SxProps } from "@mui/material/styles";
 
 // --- Types ---
 type UnoColor = "red" | "yellow" | "green" | "blue" | "black";
@@ -11,6 +12,8 @@ interface UnoCardProps {
   value: UnoValue;
   onSelect?: () => void; // Adiciona a propriedade opcional onSelect
   chosenColor?: UnoColor; // Adiciona a propriedade opcional chosenColor
+  position?: number;
+  sxCard?: SxProps;
 }
 
 interface CardContainerProps {
@@ -148,25 +151,39 @@ const UnoCardFront: React.FC<UnoCardProps> = ({
   value,
   onSelect,
   chosenColor,
+  position,
+  sxCard,
 }) => {
-  // Define se a carta é uma carta Coringa (que tem o fundo preto).
+  // Define if the card is a Wild card (which has a black background).
   const isWild = color === "black";
-  // Obtém a cor de fundo a partir do mapa de cores, priorizando chosenColor se fornecido
+  // Get the background color from the color map, prioritizing chosenColor if provided
   const backgroundColor = chosenColor
     ? colorMap[chosenColor]
     : colorMap[color] || colorMap.black;
-  // Obtém o valor de exibição com símbolos especiais
+  // Get the display value with special symbols
   const displayValue = getDisplayValue(value);
+
+  // --- Rotation Logic ---
+  // Calculate the rotation angle based on the card's position.
+  // This formula maps a position from 1-10 to a rotation from -13.5deg to +13.5deg,
+  // making cards in a hand appear fanned out. The center (position 5.5) has a 0deg rotation.
+  const rotation = position ? (position - 5.5) * 3 : 0;
+
   return (
     <CardContainer
       cardColor={backgroundColor}
       onClick={onSelect}
-      sx={{ cursor: onSelect ? "pointer" : "default" }}
+      sx={{
+        cursor: onSelect ? "pointer" : "default",
+        // Apply the calculated rotation
+        transform: `rotate(${rotation}deg)`,
+        ...sxCard,
+      }}
     >
-      {/* Canto superior esquerdo */}
+      {/* Top-left corner */}
       <CornerValue sx={{ top: 8, left: 16 }}>{displayValue}</CornerValue>
 
-      {/* Elemento central da carta */}
+      {/* Central element of the card */}
       {!isWild && <CenterOval />}
       {isWild ? (
         <WildColorDisplay />
@@ -174,7 +191,7 @@ const UnoCardFront: React.FC<UnoCardProps> = ({
         <CenterValue cardColor={backgroundColor}>{displayValue}</CenterValue>
       )}
 
-      {/* Canto inferior direito (rotacionado) */}
+      {/* Bottom-right corner (rotated) */}
       <CornerValue sx={{ bottom: 8, right: 16, transform: "rotate(180deg)" }}>
         {displayValue}
       </CornerValue>

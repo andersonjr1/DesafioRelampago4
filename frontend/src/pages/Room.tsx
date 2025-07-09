@@ -17,6 +17,7 @@ interface Card {
   color: string;
   value: string;
   chosenColor?: string;
+  position?: number;
 }
 
 interface Player {
@@ -66,6 +67,7 @@ const Room: React.FC = () => {
   const [playersOrder, setPlayersOrder] = React.useState<number[]>([]);
   const [owner, setOwner] = React.useState<boolean>(false);
   const [currentCard, setCurrentCard] = React.useState<Card>();
+  const [playedCards, setPlayedCards] = React.useState<Card[]>([]);
   const [currentPlayerId, setCurrentPlayerId] = React.useState<string>("");
   const [playerHand, setPlayerHand] = React.useState<Card[]>([]);
   const [winnerName, setWinnerName] = React.useState<string>("");
@@ -136,8 +138,11 @@ const Room: React.FC = () => {
               setOwner(data.payload.ownerId === user.id);
               setPlayersOrder(getPlayerOrder(data.payload.players, user.id));
             }
+            setPlayedCards(data.payload.playedCards);
             setCurrentPlayerId(data.payload.currentPlayerId);
-            setCurrentCard(data.payload.currentCard);
+            setCurrentCard(
+              data.payload.playedCards[data.payload.playedCards.length - 1]
+            );
             setGameDirection(data.payload.gameDirection);
             if (data.payload.playerHand) {
               setPlayerHand(data.payload.playerHand);
@@ -266,7 +271,7 @@ const Room: React.FC = () => {
       {currentCard && (
         <>
           <GameCenter
-            lastPlayedCard={currentCard}
+            playedCards={playedCards as Card[]}
             onSkipTurn={handleSkipTurn}
             onSelectCardBack={handleBuyCard}
             direction={gameDirection}
