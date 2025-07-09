@@ -28,7 +28,6 @@ services:
       --agree-tos 
       --no-eff-email 
       -d ${LETSENCRYPT_DOMAIN} 
-      -d www.${LETSENCRYPT_DOMAIN}
     networks:
       - game-network
 
@@ -42,8 +41,6 @@ services:
       - .env
     depends_on:
       - db
-    volumes:
-      - ./backend:/app
     networks:
       - game-network
 
