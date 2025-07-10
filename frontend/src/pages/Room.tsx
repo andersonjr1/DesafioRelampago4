@@ -91,26 +91,15 @@ const Room: React.FC = () => {
   };
   // Start WebSocket connection when component mounts and disconnect when it unmounts
   React.useEffect(() => {
-    console.log("Room component mounted. Connecting to WebSocket...");
     if (code) {
       connect(code, errorAndGoBack);
     }
 
     // Return a cleanup function to be called when the component unmounts
     return () => {
-      console.log("Room component unmounted. Disconnecting from WebSocket...");
       disconnect();
     };
   }, []); // Dependencies for the effect
-
-  // Console log user information when component mounts or user changes
-  React.useEffect(() => {
-    console.log("User information in Room:", {
-      userId: user.id,
-      userName: user.name,
-      roomCode: code,
-    });
-  }, [user, code]);
 
   // Handle incoming messages specific to the room
   React.useEffect(() => {
@@ -126,12 +115,7 @@ const Room: React.FC = () => {
               navigate(`/lobby`);
             }, 3000);
             break;
-          case "START_GAME":
-            console.log("Game started:", data);
-            // Handle game start - update UI to show game state
-            break;
           case "UPDATE_ROOM":
-            console.log("Room updated:", data.payload);
             setRoomStatus(data.payload.status);
             setPlayers(data.payload.players);
             if (user.id) {
@@ -188,12 +172,10 @@ const Room: React.FC = () => {
             }
             break;
           case "MESSAGE":
-            console.log("Server message:", data.payload.message);
             setMessageText(data.payload.message);
             setShowMessage(true);
             break;
           default:
-            console.log("Unknown message type:", data.type, data);
             break;
         }
       } catch (error) {
@@ -299,7 +281,6 @@ const Room: React.FC = () => {
                 );
               }
               setOpenColorChoiceModal(!openColorChoiceModal);
-              console.log(color);
             }}
           />
         </>

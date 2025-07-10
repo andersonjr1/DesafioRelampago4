@@ -115,20 +115,17 @@ const RoomCodeDisplay: React.FC<RoomCodeDisplayProps> = ({
 
   const handleStart = () => {
     // Send START_GAME WebSocket message
-    console.log(`Starting game for room: ${roomCode}`);
     sendMessage(JSON.stringify({ type: "START_GAME" }));
   };
 
   const handleDisconnect = () => {
     // Send DISCONNECT WebSocket message
-    console.log(`Disconnecting from room: ${roomCode}`);
     sendMessage(JSON.stringify({ type: "DISCONNECT_VOLUNTARY" }));
     navigate("/lobby");
   };
 
   const confirmDeleteRoom = () => {
     // Send DELETE_ROOM WebSocket message
-    console.log(`Deletando sala com código: ${roomCode}`);
     sendMessage(JSON.stringify({ type: "DELETE_ROOM" }));
 
     setDeleteDialogOpen(false);

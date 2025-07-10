@@ -43,24 +43,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     socketUrl,
     {
       onOpen: () => {
-        console.log("WebSocket connection established.");
-        // Reset attempts on a successful connection
         reconnectAttempts.current = 0;
       },
-      onClose: () => {
-        console.log("WebSocket connection closed.");
-      },
+      onClose: () => {},
       onError: (error) => {
         console.error("WebSocket error:", error);
       },
       // This function determines if a reconnect should be attempted
       shouldReconnect: () => {
         if (reconnectAttempts.current < 3) {
-          console.log(`Reconnect attempt ${reconnectAttempts.current + 1}`);
           reconnectAttempts.current += 1;
           return true; // Attempt to reconnect
         }
-        console.log("Maximum reconnect attempts reached.");
         return false; // Stop reconnecting
       },
       // Set the interval between reconnection attempts to 5 seconds
@@ -76,7 +70,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     if (readyState === ReadyState.CLOSED && reconnectAttempts.current >= 3) {
       // If a failure callback was provided, execute it
       if (onFailureCallback.current) {
-        console.log("Executing failure callback.");
         onFailureCallback.current();
       }
       // Reset the callback ref to prevent it from being called again
