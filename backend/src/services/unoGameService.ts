@@ -253,7 +253,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
       const sentObject = {
         ...personalRoomState,
         startTimestamp,
-        entTimestamp: room.timeoutExcutionTime,
+        endTimestamp: room.timeoutExcutionTime,
       };
       sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
     }
@@ -313,21 +313,21 @@ function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
   if (timeLimit) {
     console.log("TimeLimit reached");
     const startTimestamp = Date.now();
-    const entTimestamp = startTimestamp + 15000;
+    const endTimestamp = startTimestamp + 15000;
     room.players.forEach((player) => {
       if (player.ws && player.ws.readyState === WebSocket.OPEN) {
         const personalRoomState = getRoomStateForApi(room, player.id);
         const sentObject = {
           ...personalRoomState,
           startTimestamp,
-          entTimestamp,
+          endTimestamp,
         };
         console.log("COM TEMPO");
         sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
       }
     });
     clearTimeout(room.timeoutId);
-    room.timeoutExcutionTime = entTimestamp;
+    room.timeoutExcutionTime = endTimestamp;
     room.timeoutId = setTimeout(() => {
       handleTimeLimit(room);
     }, 15000);

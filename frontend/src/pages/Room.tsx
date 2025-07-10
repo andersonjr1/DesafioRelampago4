@@ -166,10 +166,10 @@ const Room: React.FC = () => {
               setShowWinner(true);
               setPlayerHand([]);
             }
-            if (data.payload.entTimestamp && data.payload.startTimestamp) {
+            if (data.payload.endTimestamp && data.payload.startTimestamp) {
               const startTimePC = Date.now();
               const endTimePC =
-                data.payload.entTimestamp +
+                data.payload.endTimestamp +
                 (startTimePC - data.payload.startTimestamp);
 
               setEndTime(endTimePC);
