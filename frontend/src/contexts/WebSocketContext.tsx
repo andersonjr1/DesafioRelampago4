@@ -44,6 +44,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     {
       onOpen: () => {
         reconnectAttempts.current = 0;
+        setInterval(() => {
+          sendMessage(JSON.stringify({ Heartbeat: "Heartbeat" }));
+        }, 15000);
       },
       onClose: () => {},
       onError: (error) => {
