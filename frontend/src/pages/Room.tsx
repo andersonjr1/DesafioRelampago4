@@ -117,6 +117,9 @@ const Room: React.FC = () => {
             break;
           case "UPDATE_ROOM":
             setRoomStatus(data.payload.status);
+            if (data.payload.status === "IN_GAME") {
+              setShowWinner(false);
+            }
             setPlayers(data.payload.players);
             if (user.id) {
               setOwner(data.payload.ownerId === user.id);
