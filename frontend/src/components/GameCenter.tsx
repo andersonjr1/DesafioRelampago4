@@ -97,17 +97,17 @@ const ArrowImage = styled("img")({
 
 const DirectionArrows: React.FC<{ direction: string }> = ({ direction }) => {
   const isClockwise = direction === "clockwise";
-  
+
   return (
     <>
       <ArrowContainer sx={{ left: "-80px" }}>
-        <ArrowImage 
+        <ArrowImage
           src={isClockwise ? clockwiseLeft : antiClockwiseLeft}
           alt={`${direction} left arrow`}
         />
       </ArrowContainer>
       <ArrowContainer sx={{ right: "-80px" }}>
-        <ArrowImage 
+        <ArrowImage
           src={isClockwise ? clockwiseRight : antiClockwiseRight}
           alt={`${direction} right arrow`}
         />

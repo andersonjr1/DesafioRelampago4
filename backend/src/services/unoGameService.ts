@@ -54,6 +54,7 @@ interface UnoPlayer {
   disconnected?: boolean;
   yelledUno?: boolean;
   hand?: Card[];
+  accusedNoUnoTimeStampAgain?: number;
 }
 
 interface UnoRoom {
@@ -252,7 +253,7 @@ function handlePlayerConnect(ws: UnoWebSocket): void {
       const sentObject = {
         ...personalRoomState,
         startTimestamp,
-        entTimestamp: room.timeoutExcutionTime,
+        endTimestamp: room.timeoutExcutionTime,
       };
       sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
     }
@@ -312,21 +313,21 @@ function broadcastRoomState(room: UnoRoom, timeLimit?: boolean): void {
   if (timeLimit) {
     console.log("TimeLimit reached");
     const startTimestamp = Date.now();
-    const entTimestamp = startTimestamp + 15000;
+    const endTimestamp = startTimestamp + 15000;
     room.players.forEach((player) => {
       if (player.ws && player.ws.readyState === WebSocket.OPEN) {
         const personalRoomState = getRoomStateForApi(room, player.id);
         const sentObject = {
           ...personalRoomState,
           startTimestamp,
-          entTimestamp,
+          endTimestamp,
         };
         console.log("COM TEMPO");
         sendToUnoClient(player.ws, "UPDATE_ROOM", sentObject);
       }
     });
     clearTimeout(room.timeoutId);
-    room.timeoutExcutionTime = entTimestamp;
+    room.timeoutExcutionTime = endTimestamp;
     room.timeoutId = setTimeout(() => {
       handleTimeLimit(room);
     }, 15000);
@@ -817,6 +818,12 @@ function handleAccuseNoUno(
     });
   }
 
+  if(accuser.accusedNoUnoTimeStampAgain && accuser.accusedNoUnoTimeStampAgain > Date.now()) {
+    return sendToUnoClient(ws, "ERROR", {
+      message: `Você só pode acusar novamente após ${Math.round((accuser.accusedNoUnoTimeStampAgain - Date.now()) / 1000)} segundos`,
+    });
+  }
+
   // Check if the accused player has exactly one card and hasn't yelled UNO
   if (accusedPlayer.hand.length === 1 && !accusedPlayer.yelledUno) {
     // Penalize the accused player with 2 additional cards
@@ -834,12 +841,13 @@ function handleAccuseNoUno(
     // False accusation - accuser gets penalized instead
     if (accuser.hand) {
       accuser.hand.push(...dealCards(1));
+      accuser.accusedNoUnoTimeStampAgain = Date.now() + 60000;
     }
     
     broadcastToRoom(room, {
       type: "MESSAGE",
       payload: {
-        message: `${accuser.name} fez uma acusação falsa! ${accuser.name} comprou 1 carta.`,
+        message: `${accuser.name} fez uma acusação falsa! ${accuser.name} comprou 1 carta. Só poderá acusar novamente em 60 segundos.`,
       },
     });
     

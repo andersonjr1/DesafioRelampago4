@@ -129,7 +129,6 @@ const GameHistory: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log(data.data.games);
           setGames(data.data.games);
         } else {
           const errorData = await response.json();
