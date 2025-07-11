@@ -184,12 +184,26 @@ const Room: React.FC = () => {
     }
   }, [lastMessage, user.id]);
 
-  const handleCloseError = () => {
+  const handleCloseError = (
+    _: React.SyntheticEvent | Event,
+    reason?: string
+  ): void => {
+    if (reason === "clickaway") {
+      return;
+    }
+
     setShowError(false);
     setErrorMessage("");
   };
 
-  const handleCloseMessage = () => {
+  const handleCloseMessage = (
+    _: React.SyntheticEvent | Event,
+    reason?: string
+  ): void => {
+    if (reason === "clickaway") {
+      return;
+    }
+
     setShowMessage(false);
     setMessageText("");
   };
